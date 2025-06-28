@@ -1,43 +1,37 @@
 import { useState, useEffect } from 'react';
 import { FocusStock } from '../types/FocusStock';
 import { apiService } from '../services/api';
+import { FocusStockTag } from '../components/FocusStockTags';
 
 export function useFocusStocks(userEmail?: string) {
   const [focusStocks, setFocusStocks] = useState<FocusStock[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load focus stocks from API
-  const loadFocusStocks = async () => {
+  // Load focus stocks from localStorage
+  const loadFocusStocks = () => {
     if (!userEmail) return;
     
     try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await apiService.getFocusStocks();
-      
-      if (response.success && response.data.stocks) {
-        // Transform API data to match frontend FocusStock interface
-        const transformedStocks = response.data.stocks.map((stock: any) => ({
-          id: stock._id,
-          symbol: stock.stockName,
-          targetPrice: stock.targetPrice,
-          currentPrice: stock.currentPrice,
-          reason: stock.reason || '',
-          dateAdded: stock.createdAt ? stock.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
-          tradeTaken: stock.tradeTaken || false,
-          tradeDate: stock.tradeDate ? stock.tradeDate.split('T')[0] : undefined,
-          notes: stock.notes || ''
-        }));
-        
-        setFocusStocks(transformedStocks);
+      const stored = localStorage.getItem(`focusStocks_${userEmail}`);
+      if (stored) {
+        setFocusStocks(JSON.parse(stored));
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load focus stocks');
-      console.error('Load focus stocks error:', err);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Error loading focus stocks:', error);
+      setError('Failed to load focus stocks');
+    }
+  };
+
+  // Save focus stocks to localStorage
+  const saveFocusStocks = (stocks: FocusStock[]) => {
+    if (!userEmail) return;
+    
+    try {
+      localStorage.setItem(`focusStocks_${userEmail}`, JSON.stringify(stocks));
+    } catch (error) {
+      console.error('Error saving focus stocks:', error);
+      setError('Failed to save focus stocks');
     }
   };
 
@@ -64,26 +58,16 @@ export function useFocusStocks(userEmail?: string) {
         throw new Error('Date added is required');
       }
 
-      // Transform frontend FocusStock to API format
-      const apiData = {
-        stockName: stockData.symbol.toUpperCase().trim(),
-        entryPrice: stockData.currentPrice, // Use current price as entry price
-        targetPrice: stockData.targetPrice,
-        stopLossPrice: stockData.currentPrice * 0.95, // Default 5% stop loss
-        currentPrice: stockData.currentPrice,
-        reason: stockData.reason.trim(),
-        notes: stockData.notes?.trim() || '',
-        tradeTaken: stockData.tradeTaken || false,
-        tradeDate: stockData.tradeDate || undefined
+      const newStock: FocusStock = {
+        ...stockData,
+        id: Date.now().toString()
       };
+
+      const updatedStocks = [...focusStocks, newStock];
+      setFocusStocks(updatedStocks);
+      saveFocusStocks(updatedStocks);
       
-      console.log('Sending focus stock data to API:', apiData);
-      
-      const response = await apiService.createFocusStock(apiData);
-      
-      if (response.success) {
-        await loadFocusStocks(); // Reload from server
-      }
+      return newStock;
     } catch (error) {
       console.error('Add focus stock error:', error);
       throw error;
@@ -109,24 +93,14 @@ export function useFocusStocks(userEmail?: string) {
         throw new Error('Date added is required');
       }
 
-      // Transform frontend FocusStock to API format
-      const apiData = {
-        stockName: stockData.symbol.toUpperCase().trim(),
-        entryPrice: stockData.currentPrice,
-        targetPrice: stockData.targetPrice,
-        stopLossPrice: stockData.currentPrice * 0.95,
-        currentPrice: stockData.currentPrice,
-        reason: stockData.reason.trim(),
-        notes: stockData.notes?.trim() || '',
-        tradeTaken: stockData.tradeTaken || false,
-        tradeDate: stockData.tradeDate || undefined
-      };
+      const updatedStocks = focusStocks.map(stock => 
+        stock.id === stockId ? { ...stockData, id: stockId } : stock
+      );
       
-      const response = await apiService.updateFocusStock(stockId, apiData);
+      setFocusStocks(updatedStocks);
+      saveFocusStocks(updatedStocks);
       
-      if (response.success) {
-        await loadFocusStocks(); // Reload from server
-      }
+      return updatedStocks.find(stock => stock.id === stockId);
     } catch (error) {
       console.error('Update focus stock error:', error);
       throw error;
@@ -135,11 +109,9 @@ export function useFocusStocks(userEmail?: string) {
 
   const deleteFocusStock = async (stockId: string) => {
     try {
-      const response = await apiService.deleteFocusStock(stockId);
-      
-      if (response.success) {
-        await loadFocusStocks(); // Reload from server
-      }
+      const updatedStocks = focusStocks.filter(stock => stock.id !== stockId);
+      setFocusStocks(updatedStocks);
+      saveFocusStocks(updatedStocks);
     } catch (error) {
       console.error('Delete focus stock error:', error);
       throw error;
@@ -148,13 +120,38 @@ export function useFocusStocks(userEmail?: string) {
 
   const markTradeTaken = async (stockId: string, tradeTaken: boolean, tradeDate?: string) => {
     try {
-      const response = await apiService.markFocusStockTaken(stockId, tradeTaken, tradeDate);
+      const updatedStocks = focusStocks.map(stock => 
+        stock.id === stockId 
+          ? { 
+              ...stock, 
+              tradeTaken, 
+              tradeDate: tradeTaken ? (tradeDate || new Date().toISOString().split('T')[0]) : undefined 
+            } 
+          : stock
+      );
       
-      if (response.success) {
-        await loadFocusStocks(); // Reload from server
-      }
+      setFocusStocks(updatedStocks);
+      saveFocusStocks(updatedStocks);
+      
+      return updatedStocks.find(stock => stock.id === stockId);
     } catch (error) {
       console.error('Mark trade taken error:', error);
+      throw error;
+    }
+  };
+
+  const updateStockTag = async (stockId: string, tag: FocusStockTag) => {
+    try {
+      const updatedStocks = focusStocks.map(stock => 
+        stock.id === stockId ? { ...stock, tag } : stock
+      );
+      
+      setFocusStocks(updatedStocks);
+      saveFocusStocks(updatedStocks);
+      
+      return updatedStocks.find(stock => stock.id === stockId);
+    } catch (error) {
+      console.error('Update stock tag error:', error);
       throw error;
     }
   };
@@ -167,6 +164,7 @@ export function useFocusStocks(userEmail?: string) {
     updateFocusStock,
     deleteFocusStock,
     markTradeTaken,
+    updateStockTag,
     refetch: loadFocusStocks
   };
 }

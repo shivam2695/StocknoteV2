@@ -1,3 +1,5 @@
+import { FocusStockTag } from '../components/FocusStockTags';
+
 export interface FocusStock {
   id: string;
   symbol: string;
@@ -8,5 +10,5 @@ export interface FocusStock {
   tradeTaken: boolean;
   tradeDate?: string;
   notes?: string;
-  tag?: 'worked' | 'missed' | 'failed' | 'watch';
+  tag?: FocusStockTag;
 }

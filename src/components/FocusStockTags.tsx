@@ -70,7 +70,7 @@ export default function FocusStockTags({
     const Icon = tag.icon;
     
     return (
-      <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${tag.selectedColor}`}>
+      <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${tag.color}`}>
         <Icon className="w-3 h-3" />
         <span>{tag.label}</span>
       </span>
