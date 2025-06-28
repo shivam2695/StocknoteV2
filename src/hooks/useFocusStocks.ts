@@ -118,22 +118,35 @@ export function useFocusStocks(userEmail?: string) {
     }
   };
 
-  const markTradeTaken = async (stockId: string, tradeTaken: boolean, tradeDate?: string) => {
+  const markTradeTaken = async (stockId: string, tradeTaken: boolean, tradeDate?: string, entryPrice?: number, quantity?: number) => {
     try {
+      // Find the stock to update
+      const stockToUpdate = focusStocks.find(stock => stock.id === stockId);
+      if (!stockToUpdate) {
+        throw new Error('Stock not found');
+      }
+      
+      // Update the stock with new values
+      const updatedStock = {
+        ...stockToUpdate,
+        tradeTaken,
+        tradeDate: tradeTaken ? (tradeDate || new Date().toISOString().split('T')[0]) : undefined,
+        // If entry price is provided, update it
+        currentPrice: entryPrice !== undefined ? entryPrice : stockToUpdate.currentPrice
+      };
+      
+      // Update the stocks array
       const updatedStocks = focusStocks.map(stock => 
-        stock.id === stockId 
-          ? { 
-              ...stock, 
-              tradeTaken, 
-              tradeDate: tradeTaken ? (tradeDate || new Date().toISOString().split('T')[0]) : undefined 
-            } 
-          : stock
+        stock.id === stockId ? updatedStock : stock
       );
       
       setFocusStocks(updatedStocks);
       saveFocusStocks(updatedStocks);
       
-      return updatedStocks.find(stock => stock.id === stockId);
+      return {
+        stock: updatedStock,
+        quantity: quantity || 1
+      };
     } catch (error) {
       console.error('Mark trade taken error:', error);
       throw error;
