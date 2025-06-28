@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Trade, TradeStats } from '../types/Trade';
 import { FocusStock } from '../types/FocusStock';
 import StatsCard from './StatsCard';
@@ -20,8 +20,10 @@ import {
   ArrowDownRight,
   Eye,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
+import { stockCsvService } from '../services/stockCsvService';
 
 interface DashboardProps {
   trades: Trade[];
@@ -49,6 +51,7 @@ export default function Dashboard({
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [markAsClosed, setMarkAsClosed] = useState<{ isOpen: boolean; trade?: Trade }>({ isOpen: false });
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleEditTrade = (trade: Trade) => {
     setEditingTrade(trade);
@@ -100,6 +103,19 @@ export default function Dashboard({
     setEditingTrade(undefined);
     setIsModalOpen(true);
     // The TradeModal will handle the stock selection through StockSearchInput
+  };
+
+  const handleRefreshCMP = async () => {
+    setIsRefreshing(true);
+    try {
+      await stockCsvService.refreshData();
+      // Force a re-render
+      setSelectedPeriod(prev => prev);
+    } catch (error) {
+      console.error('Failed to refresh CMP data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -216,6 +232,14 @@ export default function Dashboard({
               <option value="90d">Last 90 days</option>
               <option value="1y">Last year</option>
             </select>
+            <button
+              onClick={handleRefreshCMP}
+              className="flex items-center space-x-2 px-4 py-2 bg-green-100 hover:bg-green-200 rounded-lg transition-colors"
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`w-5 h-5 text-green-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="text-green-700 font-medium">Refresh CMP</span>
+            </button>
             <button
               onClick={() => setIsModalOpen(true)}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 whitespace-nowrap"
@@ -467,6 +491,7 @@ export default function Dashboard({
                 onEditTrade={handleEditTrade}
                 onDeleteTrade={onDeleteTrade}
                 onUpdateTrade={onEditTrade}
+                onRefreshCMP={handleRefreshCMP}
               />
             </div>
           ) : (

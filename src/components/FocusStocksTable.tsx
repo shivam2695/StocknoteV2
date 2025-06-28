@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FocusStock } from '../types/FocusStock';
-import { Target, TrendingUp, CheckCircle, Circle, Edit, Trash2, Calendar, IndianRupee, Clock } from 'lucide-react';
+import { Target, TrendingUp, CheckCircle, Circle, Edit, Trash2, Calendar, IndianRupee, Clock, RefreshCw } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import FocusStockTags, { FocusStockTag } from './FocusStockTags';
 import { stockCsvService } from '../services/stockCsvService';
@@ -11,6 +11,7 @@ interface FocusStocksTableProps {
   onDeleteStock: (stockId: string) => void;
   onMarkTradeTaken: (stockId: string, tradeTaken: boolean, tradeDate?: string) => void;
   onUpdateStockTag?: (stockId: string, tag: FocusStockTag) => void;
+  onRefreshCMP?: () => void;
 }
 
 export default function FocusStocksTable({ 
@@ -18,10 +19,12 @@ export default function FocusStocksTable({
   onEditStock, 
   onDeleteStock, 
   onMarkTradeTaken,
-  onUpdateStockTag
+  onUpdateStockTag,
+  onRefreshCMP
 }: FocusStocksTableProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; stock?: FocusStock }>({ isOpen: false });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -70,6 +73,21 @@ export default function FocusStocksTable({
     return stock ? stock.cmp : null;
   };
 
+  // Handle CMP refresh
+  const handleRefreshCMP = async () => {
+    setIsRefreshing(true);
+    try {
+      await stockCsvService.refreshData();
+      if (onRefreshCMP) {
+        onRefreshCMP();
+      }
+    } catch (error) {
+      console.error('Failed to refresh CMP:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const handleTradeTakenToggle = (stock: FocusStock) => {
     if (!stock.tradeTaken) {
       const tradeDate = new Date().toISOString().split('T')[0];
@@ -106,6 +124,18 @@ export default function FocusStocksTable({
   return (
     <>
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-gray-900">Focus Stocks List</h3>
+          <button
+            onClick={handleRefreshCMP}
+            disabled={isRefreshing}
+            className="flex items-center space-x-2 px-3 py-2 bg-green-100 hover:bg-green-200 rounded-lg transition-colors disabled:opacity-50 text-sm"
+            title="Refresh CMP from Google Sheet"
+          >
+            <RefreshCw className={`w-4 h-4 text-green-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="text-green-700 font-medium">Refresh CMP</span>
+          </button>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
