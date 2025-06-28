@@ -37,6 +37,13 @@ function AppContent() {
   
   const { isAuthenticated, user, login, logout, signUp } = useAuth();
   
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      window.location.href = '/login';
+    }
+  }, [isAuthenticated]);
+  
   // Pass user email to hooks for user-specific data
   const { 
     trades, 
@@ -87,16 +94,6 @@ function AppContent() {
         <HealthCheck />
       </>
     );
-  }
-
-  async function handleLogin(email: string, password: string) {
-    await login(email, password);
-    setShowWelcomeModal(true);
-  }
-
-  async function handleSignUp(name: string, email: string, password: string) {
-    await signUp(name, email, password);
-    setShowWelcomeModal(true);
   }
 
   const handleEditTrade = (trade: Trade) => {
@@ -557,9 +554,9 @@ function App() {
         <Toaster />
         <Sonner />
         <Routes>
-          <Route path="/" element={isAuthenticated ? <Navigate to="/app/dashboard" /> : <LandingPage />} />
-          <Route path="/login" element={isAuthenticated ? <Navigate to="/app/dashboard" /> : <Auth />} />
-          <Route path="/signup" element={isAuthenticated ? <Navigate to="/app/dashboard" /> : <Auth />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Auth />} />
+          <Route path="/signup" element={<Auth />} />
           <Route path="/app/*" element={<AppContent />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

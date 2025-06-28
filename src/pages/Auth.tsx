@@ -8,7 +8,7 @@ import { toast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const location = useLocation();
-  const [isLogin, setIsLogin] = useState(location.pathname === "/login");
+  const [isLogin, setIsLogin] = useState(location.pathname !== "/signup");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -33,7 +33,7 @@ const Auth = () => {
 
   // Update login/signup mode based on URL path
   useEffect(() => {
-    setIsLogin(location.pathname === "/login");
+    setIsLogin(location.pathname !== "/signup");
   }, [location.pathname]);
 
   const handleInputChange = (field: string, value: string) => {

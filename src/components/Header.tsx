@@ -16,6 +16,7 @@ import { Notification } from '../types/Notification';
 import NotificationCenter from './NotificationCenter';
 import ProfileModal from './ProfileModal';
 import ConfirmationModal from './ConfirmationModal';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   user: UserType;
@@ -47,6 +48,7 @@ const Header: React.FC<HeaderProps> = ({
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [userProfilePhoto, setUserProfilePhoto] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Load profile photo from localStorage
   useEffect(() => {

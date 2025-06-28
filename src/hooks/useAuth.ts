@@ -235,6 +235,9 @@ export const useAuth = () => {
         title: "Logged out",
         description: "You have been successfully logged out",
       });
+      
+      // Redirect to login page
+      window.location.href = '/login';
     }
   };
 
