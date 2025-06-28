@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FocusStock } from '../types/FocusStock';
 import { X, Target, AlertCircle, RefreshCw, IndianRupee, TrendingUp, TrendingDown } from 'lucide-react';
 import FocusStockTags, { FocusStockTag } from './FocusStockTags';
@@ -34,7 +34,7 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
