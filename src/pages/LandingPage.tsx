@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   TrendingUp,
   BarChart3,
@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 
 const LandingPage = () => {
+  const navigate = useNavigate();
+  
   const fadeInUp = {
     initial: { opacity: 0, y: 60 },
     animate: { opacity: 1, y: 0 },
@@ -152,14 +154,13 @@ const LandingPage = () => {
                 Log your trades, track performance, and master the markets — all
                 in one clean dashboard.
               </p>
-              <Link to="/signup">
-                <Button
-                  size="lg"
-                  className="bg-blue-500 hover:bg-blue-400 text-white font-semibold px-8 py-4 text-lg"
-                >
-                  Try MyStockNote free →
-                </Button>
-              </Link>
+              <Button
+                size="lg"
+                className="bg-blue-500 hover:bg-blue-400 text-white font-semibold px-8 py-4 text-lg"
+                onClick={() => navigate('/signup')}
+              >
+                Try MyStockNote free →
+              </Button>
             </motion.div>
 
             <motion.div {...fadeInRight} className="relative">
@@ -697,14 +698,13 @@ const LandingPage = () => {
             analyze, and optimize their portfolios.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link to="/signup">
-              <Button
-                size="lg"
-                className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-8 py-4 text-lg"
-              >
-                Try MyStockNote free →
-              </Button>
-            </Link>
+            <Button
+              size="lg"
+              className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-8 py-4 text-lg"
+              onClick={() => navigate('/signup')}
+            >
+              Try MyStockNote free →
+            </Button>
             <Button
               size="lg"
               variant="outline"
