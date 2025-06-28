@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input.tsx";
+import { Input } from "@/components/ui/input";
 import { Eye, EyeOff, TrendingUp, BarChart3, Shield, Zap, Mail, Lock, User } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 
