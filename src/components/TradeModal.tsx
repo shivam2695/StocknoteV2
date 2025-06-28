@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Trade } from '../types/Trade';
-import { X, TrendingUp, TrendingDown, AlertCircle, RefreshCw } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, AlertCircle, RefreshCw, DollarSign } from 'lucide-react';
 import StockSearchInput from './StockSearchInput';
 import { StockData } from '../services/stockApi';
 
@@ -296,6 +296,15 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
     }
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -348,6 +357,44 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
               </div>
             )}
           </div>
+
+          {/* Current Market Price (CMP) Display */}
+          {currentStockData && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <DollarSign className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <div className="text-sm font-medium text-blue-900">Current Market Price (CMP)</div>
+                    <div className="text-xs text-blue-700">{currentStockData.exchange} • Live Price</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-blue-900">
+                    {formatCurrency(currentStockData.price)}
+                  </div>
+                  <div className={`text-sm flex items-center justify-end ${
+                    currentStockData.change >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {currentStockData.change >= 0 ? (
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                    ) : (
+                      <TrendingDown className="w-3 h-3 mr-1" />
+                    )}
+                    {currentStockData.change >= 0 ? '+' : ''}{currentStockData.change.toFixed(2)} ({currentStockData.changePercent.toFixed(2)}%)
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleUseLivePrice}
+                className="mt-3 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                disabled={isSubmitting}
+              >
+                Use CMP as Entry Price ({formatCurrency(currentStockData.price)})
+              </button>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -408,7 +455,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Entry Price *
+                Entry Price (₹) *
               </label>
               <div className="relative">
                 <input
@@ -490,7 +537,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Exit Price *
+                    Exit Price (₹) *
                   </label>
                   <input
                     type="number"
