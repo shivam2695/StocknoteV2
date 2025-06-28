@@ -70,22 +70,20 @@ export default function FocusStockTags({
     );
   }
 
-  // Select mode - show dropdown or buttons for selection
+  // Select mode - show dropdown for selection
   return (
-    <div className="relative">
-      <select
-        value={selectedTag || ''}
-        onChange={(e) => onTagChange(e.target.value as FocusStockTag)}
-        disabled={disabled}
-        className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      >
-        <option value="">No tag</option>
-        {tags.map((tag) => (
-          <option key={tag.id} value={tag.id}>
-            {tag.label}
-          </option>
-        ))}
-      </select>
-    </div>
+    <select
+      value={selectedTag || ''}
+      onChange={(e) => onTagChange(e.target.value as FocusStockTag)}
+      disabled={disabled}
+      className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+    >
+      <option value="">No tag</option>
+      {tags.map((tag) => (
+        <option key={tag.id} value={tag.id}>
+          {tag.label}
+        </option>
+      ))}
+    </select>
   );
 }

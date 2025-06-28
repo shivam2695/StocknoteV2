@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FocusStock } from '../types/FocusStock';
 import FocusStocksTable from './FocusStocksTable';
 import FocusStockModal from './FocusStockModal';
 import { FocusStockTag } from './FocusStockTags';
-import { Target, PlusCircle, TrendingUp, Eye, AlertCircle, Filter, SortAsc } from 'lucide-react';
+import { Target, PlusCircle, TrendingUp, Eye, AlertCircle, Filter, SortAsc, RefreshCw } from 'lucide-react';
+import { stockCsvService } from '../services/stockCsvService';
 
 interface FocusStocksProps {
   stocks: FocusStock[];
@@ -28,6 +29,20 @@ export default function FocusStocks({
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'taken'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'symbol' | 'return'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Calculate tag statistics - FIXED
+  const getTagStats = () => {
+    const tagCounts = {
+      worked: stocks.filter(s => s.tag === 'worked').length,
+      missed: stocks.filter(s => s.tag === 'missed').length,
+      failed: stocks.filter(s => s.tag === 'failed').length,
+      watch: stocks.filter(s => s.tag === 'watch').length
+    };
+    return tagCounts;
+  };
+
+  const tagStats = getTagStats();
 
   const handleEditStock = (stock: FocusStock) => {
     setEditingStock(stock);
@@ -54,6 +69,19 @@ export default function FocusStocks({
     setIsModalOpen(false);
     setEditingStock(undefined);
     setError('');
+  };
+
+  const handleRefreshCMP = async () => {
+    setIsRefreshing(true);
+    try {
+      await stockCsvService.refreshData();
+      // Force a re-render
+      setSortBy(prev => prev);
+    } catch (error) {
+      console.error('Failed to refresh CMP data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   // Filter and sort stocks
@@ -113,19 +141,6 @@ export default function FocusStocks({
     return totalReturn / stockList.length;
   };
 
-  // Calculate tag statistics - FIXED
-  const getTagStats = () => {
-    const tagCounts = {
-      worked: stocks.filter(s => s.tag === 'worked').length,
-      missed: stocks.filter(s => s.tag === 'missed').length,
-      failed: stocks.filter(s => s.tag === 'failed').length,
-      watch: stocks.filter(s => s.tag === 'watch').length
-    };
-    return tagCounts;
-  };
-
-  const tagStats = getTagStats();
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -134,13 +149,23 @@ export default function FocusStocks({
           <h1 className="text-3xl font-bold text-gray-900">Focus Stocks</h1>
           <p className="text-gray-600 mt-1">Track potential trading opportunities and monitor your watchlist</p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-        >
-          <PlusCircle className="w-5 h-5" />
-          <span>Add Stock</span>
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={handleRefreshCMP}
+            className="flex items-center space-x-2 px-4 py-2 bg-green-100 hover:bg-green-200 rounded-lg transition-colors"
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`w-5 h-5 text-green-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="text-green-700 font-medium">Refresh</span>
+          </button>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          >
+            <PlusCircle className="w-5 h-5" />
+            <span>Add Stock</span>
+          </button>
+        </div>
       </div>
 
       {/* Error Message */}

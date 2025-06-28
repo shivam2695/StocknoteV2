@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trade } from '../types/Trade';
-import { TrendingUp, TrendingDown, Circle, CheckCircle2, Edit, Trash2, Target, Filter, SortAsc, Calendar } from 'lucide-react';
+import { TrendingUp, TrendingDown, Circle, CheckCircle2, Edit, Trash2, Target, Filter, SortAsc, Calendar, IndianRupee, RefreshCw } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import MarkAsClosedModal from './MarkAsClosedModal';
 
@@ -10,6 +10,7 @@ interface TradeTableProps {
   onDeleteTrade: (tradeId: string) => void;
   onUpdateTrade?: (tradeId: string, tradeData: Omit<Trade, 'id'>) => Promise<void>;
   showFilters?: boolean;
+  onRefreshCMP?: () => void;
 }
 
 export default function TradeTable({ 
@@ -17,7 +18,8 @@ export default function TradeTable({
   onEditTrade, 
   onDeleteTrade, 
   onUpdateTrade,
-  showFilters = false 
+  showFilters = false,
+  onRefreshCMP
 }: TradeTableProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; trade?: Trade }>({ isOpen: false });
   const [markAsClosed, setMarkAsClosed] = useState<{ isOpen: boolean; trade?: Trade }>({ isOpen: false });
@@ -25,6 +27,7 @@ export default function TradeTable({
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'closed'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'symbol' | 'status'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -136,6 +139,14 @@ export default function TradeTable({
     setMarkAsClosed({ isOpen: false });
   };
 
+  const handleRefreshCMP = () => {
+    if (onRefreshCMP) {
+      setIsRefreshing(true);
+      onRefreshCMP();
+      setTimeout(() => setIsRefreshing(false), 1000);
+    }
+  };
+
   return (
     <>
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -146,6 +157,18 @@ export default function TradeTable({
               <h3 className="text-lg font-semibold text-gray-900">Trading Journal</h3>
               
               <div className="flex flex-col sm:flex-row gap-3">
+                {/* Refresh Button */}
+                {onRefreshCMP && (
+                  <button
+                    onClick={handleRefreshCMP}
+                    className="flex items-center space-x-2 px-3 py-2 bg-green-100 hover:bg-green-200 rounded-lg transition-colors"
+                    disabled={isRefreshing}
+                  >
+                    <RefreshCw className={`w-4 h-4 text-green-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    <span className="text-green-700 text-sm font-medium">Refresh</span>
+                  </button>
+                )}
+                
                 {/* Status Filter */}
                 <div className="flex items-center space-x-2">
                   <Filter className="w-4 h-4 text-gray-500" />
@@ -186,18 +209,18 @@ export default function TradeTable({
         )}
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full table-fixed text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Symbol</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Type</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Qty</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Entry</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Exit</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Aging</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Return</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Status</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Symbol</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-16">Type</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-12">Qty</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Entry</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Exit</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-16">Aging</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Return</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-16">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -206,30 +229,30 @@ export default function TradeTable({
                 const aging = calculateAging(trade.entryDate, trade.exitDate);
                 return (
                   <tr key={trade.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center space-x-2">
+                    <td className="py-3 px-3">
+                      <div className="flex items-center space-x-1">
                         {trade.status === 'ACTIVE' ? (
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1">
                             <Circle className="w-3 h-3 text-blue-500 fill-current" />
                             <span className="text-xs font-medium text-blue-600">Active</span>
                           </div>
                         ) : (
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1">
                             <CheckCircle2 className="w-3 h-3 text-blue-600" />
                             <span className="text-xs font-medium text-blue-600">Closed</span>
                           </div>
                         )}
                       </div>
                     </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center space-x-2">
+                    <td className="py-3 px-3">
+                      <div className="flex items-center space-x-1">
                         <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                           <span className="text-white font-bold text-xs">{getStockLogo(trade.symbol)}</span>
                         </div>
                         <span className="font-semibold text-gray-900">{trade.symbol}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-3">
                       <div className="flex items-center space-x-1">
                         {trade.type === 'BUY' ? (
                           <TrendingUp className="w-3 h-3 text-green-500" />
@@ -243,17 +266,23 @@ export default function TradeTable({
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-gray-900">{trade.quantity}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-3 text-gray-900">{trade.quantity}</td>
+                    <td className="py-3 px-3">
                       <div>
-                        <div className="text-gray-900">{formatCurrency(trade.entryPrice)}</div>
+                        <div className="flex items-center space-x-1">
+                          <IndianRupee className="w-3 h-3 text-gray-500" />
+                          <span className="text-gray-900">{trade.entryPrice.toLocaleString('en-IN')}</span>
+                        </div>
                         <div className="text-xs text-gray-500">{formatDate(trade.entryDate)}</div>
                       </div>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-3">
                       {trade.exitPrice ? (
                         <div>
-                          <div className="text-gray-900">{formatCurrency(trade.exitPrice)}</div>
+                          <div className="flex items-center space-x-1">
+                            <IndianRupee className="w-3 h-3 text-gray-500" />
+                            <span className="text-gray-900">{trade.exitPrice.toLocaleString('en-IN')}</span>
+                          </div>
                           {trade.exitDate && (
                             <div className="text-xs text-gray-500">{formatDate(trade.exitDate)}</div>
                           )}
@@ -262,17 +291,30 @@ export default function TradeTable({
                         <span className="text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="py-3 px-4">
-                      <div className="text-xs text-gray-600">
-                        <span className="font-medium">{aging}</span> days
+                    <td className="py-3 px-3">
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="w-3 h-3 text-gray-500" />
+                        <span className="text-xs text-gray-600">
+                          <span className="font-medium">{aging}</span> days
+                        </span>
                       </div>
                     </td>
-                    <td className="py-3 px-4">
-                      <span className={`font-semibold text-xs ${getReturnColor(returnValue)}`}>
-                        {trade.status === 'CLOSED' ? formatCurrency(returnValue) : '-'}
-                      </span>
+                    <td className="py-3 px-3">
+                      {trade.status === 'CLOSED' ? (
+                        <div className={`font-semibold text-xs ${getReturnColor(returnValue)}`}>
+                          <div className="flex items-center space-x-1">
+                            <IndianRupee className="w-3 h-3" />
+                            <span>{returnValue.toLocaleString('en-IN')}</span>
+                          </div>
+                          <div className="text-xs">
+                            {((returnValue / (trade.entryPrice * trade.quantity)) * 100).toFixed(1)}%
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-3">
                       <div className="flex items-center space-x-1">
                         {trade.status === 'ACTIVE' && onUpdateTrade && (
                           <button
