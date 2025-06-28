@@ -132,8 +132,8 @@ export function useFocusStocks(userEmail?: string) {
         tradeTaken,
         tradeDate: tradeTaken ? (tradeDate || new Date().toISOString().split('T')[0]) : undefined,
         // Store trade details when marking as taken
-        tradedQuantity: tradeTaken ? (quantity || 1) : undefined,
-        tradedEntryPrice: tradeTaken ? (entryPrice || stockToUpdate.currentPrice) : undefined
+        tradedQuantity: tradeTaken ? (quantity || 1) : stockToUpdate.tradedQuantity,
+        tradedEntryPrice: tradeTaken ? (entryPrice || stockToUpdate.currentPrice) : stockToUpdate.tradedEntryPrice
       };
       
       console.log('Updating focus stock with trade details:', {

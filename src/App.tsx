@@ -180,17 +180,30 @@ function App() {
               message: `${focusStock.symbol} has been marked as taken and added to your trading journal`
             });
           } else {
-            // Update existing trade by increasing quantity
+            // Calculate new average entry price
+            const oldQty = existingTrade.quantity;
+            const newQty = quantity || 1;
+            const totalQty = oldQty + newQty;
+            
+            const oldPrice = existingTrade.entryPrice;
+            const newPrice = entryPrice || focusStock.currentPrice;
+            
+            // Calculate weighted average price
+            const avgPrice = ((oldQty * oldPrice) + (newQty * newPrice)) / totalQty;
+            
+            // Update existing trade with new quantity and average price
             const updatedTrade: Omit<Trade, 'id'> = {
               ...existingTrade,
-              quantity: existingTrade.quantity + (quantity || 1)
+              quantity: totalQty,
+              entryPrice: avgPrice
             };
+            
             await updateTrade(existingTrade.id, updatedTrade);
             
             addNotification({
               type: 'focus_taken',
               title: 'Focus Stock Taken',
-              message: `${focusStock.symbol} quantity increased in your trading journal`
+              message: `${focusStock.symbol} quantity increased in your trading journal with updated average price`
             });
           }
         }
@@ -210,6 +223,10 @@ function App() {
             
             // If quantity is greater than what we're removing, reduce it
             if (matchingTrade.quantity > quantityToReduce) {
+              // Calculate new average price after removing shares
+              // This is complex and would require knowing the original entry prices
+              // For simplicity, we'll keep the same average price when reducing
+              
               const updatedTrade: Omit<Trade, 'id'> = {
                 ...matchingTrade,
                 quantity: matchingTrade.quantity - quantityToReduce

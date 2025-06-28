@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, TrendingUp, CheckCircle, AlertCircle, IndianRupee } from 'lucide-react';
+import { X, TrendingUp, CheckCircle, AlertCircle, IndianRupee, AlertTriangle } from 'lucide-react';
 import { FocusStock } from '../types/FocusStock';
 
 interface TradeTakenModalProps {
@@ -109,13 +109,13 @@ export default function TradeTakenModal({
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-gray-500">Current Price:</span>
-                <span className="ml-2 font-semibold">₹{stock.currentPrice}</span>
+                <span className="ml-2 font-semibold">₹{stock.currentPrice.toLocaleString('en-IN')}</span>
               </div>
               <div>
                 <span className="text-gray-500">Target Price:</span>
-                <span className="ml-2 font-semibold">₹{stock.targetPrice}</span>
+                <span className="ml-2 font-semibold">₹{stock.targetPrice.toLocaleString('en-IN')}</span>
               </div>
-              <div>
+              <div className="col-span-2">
                 <span className="text-gray-500">Reason:</span>
                 <span className="ml-2 font-semibold">{stock.reason}</span>
               </div>
@@ -123,23 +123,38 @@ export default function TradeTakenModal({
           </div>
 
           {/* Confirmation Message */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-blue-800 text-sm">
-              {action === 'take' 
-                ? "Mark this trade as taken and move it to the Trading Journal?" 
-                : "Revert this to In Focus and update the Trading Journal?"}
-            </p>
-            
-            {/* Show previously used quantity when reverting */}
-            {action === 'revert' && stock.tradedQuantity && (
-              <div className="mt-2 text-sm text-blue-700">
-                <p>This will reduce the journal quantity by <strong>{stock.tradedQuantity}</strong> shares.</p>
-                {stock.tradedEntryPrice && (
-                  <p>Original entry price: <strong>₹{stock.tradedEntryPrice}</strong></p>
-                )}
+          {action === 'take' ? (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-blue-800 text-sm">
+                Mark this trade as taken and move it to the Trading Journal?
+              </p>
+              <p className="text-blue-700 text-xs mt-2">
+                If this stock already exists in your journal, the quantity will be increased and the entry price will be recalculated as a weighted average.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="flex items-start space-x-2">
+                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-amber-800 text-sm font-medium">
+                    Are you sure you want to revert this trade to "In Focus"?
+                  </p>
+                  <p className="text-amber-700 text-sm mt-1">
+                    This will remove the journal entry added for {stock.symbol} and reduce the quantity by {stock.tradedQuantity || 1} shares.
+                  </p>
+                  {stock.tradedEntryPrice && (
+                    <p className="text-amber-700 text-sm mt-2">
+                      Original entry price: ₹{stock.tradedEntryPrice.toLocaleString('en-IN')}
+                    </p>
+                  )}
+                  <p className="text-amber-700 text-sm mt-2 font-medium">
+                    This action is irreversible unless re-added manually.
+                  </p>
+                </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Entry Price and Quantity Inputs (only for 'take' action) */}
           {action === 'take' && (
@@ -220,7 +235,7 @@ export default function TradeTakenModal({
               className={`flex-1 py-2 px-4 rounded-lg text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                 action === 'take' 
                   ? 'bg-green-600 hover:bg-green-700' 
-                  : 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-amber-600 hover:bg-amber-700'
               }`}
               disabled={isSubmitting}
             >
