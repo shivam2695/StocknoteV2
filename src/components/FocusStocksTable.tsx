@@ -103,7 +103,7 @@ export default function FocusStocksTable({
               <tr>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Status</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Symbol</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Current</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">CMP</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Target</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Return</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700">Reason</th>

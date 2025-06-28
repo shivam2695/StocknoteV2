@@ -218,6 +218,7 @@ export default function TradeTable({
               <tr>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Status</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Symbol</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">CMP</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-16">Type</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-12">Qty</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Entry</th>
@@ -254,6 +255,16 @@ export default function TradeTable({
                           <span className="text-white font-bold text-xs">{getStockLogo(trade.symbol)}</span>
                         </div>
                         <span className="font-semibold text-gray-900">{trade.symbol}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-3">
+                      <div className="flex items-center space-x-1">
+                        <IndianRupee className="w-3 h-3 text-gray-500" />
+                        <span className="text-gray-900">
+                          {trade.status === 'CLOSED' && trade.exitPrice 
+                            ? trade.exitPrice.toLocaleString('en-IN')
+                            : trade.entryPrice.toLocaleString('en-IN')}
+                        </span>
                       </div>
                     </td>
                     <td className="py-3 px-3">
