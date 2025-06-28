@@ -46,7 +46,8 @@ function App() {
     addFocusStock,
     updateFocusStock,
     deleteFocusStock,
-    markTradeTaken
+    markTradeTaken,
+    updateStockTag
   } = useFocusStocks(user?.email);
 
   const {
@@ -157,7 +158,7 @@ function App() {
         if (focusStock) {
           // Add to trading journal automatically
           const tradeData: Omit<Trade, 'id'> = {
-            symbol: focusStock.symbol,
+            symbol: focusStock.symbol.trim().toUpperCase(),
             type: 'BUY', // Default to BUY
             entryPrice: entryPrice || focusStock.currentPrice,
             quantity: quantity || 1,
@@ -166,10 +167,9 @@ function App() {
             notes: `From Focus Stock: ${focusStock.reason}`
           };
           
-          // Check if trade already exists to avoid duplicates
+          // Check if trade already exists by exact symbol match
           const existingTrade = trades.find(trade => 
-            trade.symbol === focusStock.symbol && 
-            trade.notes?.includes(`From Focus Stock: ${focusStock.reason}`)
+            trade.symbol.trim().toUpperCase() === focusStock.symbol.trim().toUpperCase()
           );
           
           if (!existingTrade) {
@@ -211,10 +211,9 @@ function App() {
         // Find the focus stock that was reverted
         const focusStock = focusStocks.find(stock => stock.id === stockId);
         if (focusStock) {
-          // Find and update the corresponding trade from the journal
+          // Find the corresponding trade from the journal by exact symbol match
           const matchingTrade = trades.find(trade => 
-            trade.symbol === focusStock.symbol && 
-            trade.notes?.includes(`From Focus Stock: ${focusStock.reason}`)
+            trade.symbol.trim().toUpperCase() === focusStock.symbol.trim().toUpperCase()
           );
           
           if (matchingTrade) {
@@ -264,11 +263,7 @@ function App() {
 
   const handleUpdateFocusStockTag = async (stockId: string, tag: FocusStockTag) => {
     try {
-      const stock = focusStocks.find(s => s.id === stockId);
-      if (stock) {
-        const updatedStock = { ...stock, tag };
-        await updateFocusStock(stockId, updatedStock);
-      }
+      await updateStockTag(stockId, tag);
     } catch (error: any) {
       console.error('Update focus stock tag error:', error);
     }

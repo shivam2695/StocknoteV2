@@ -60,7 +60,9 @@ export function useFocusStocks(userEmail?: string) {
 
       const newStock: FocusStock = {
         ...stockData,
-        id: Date.now().toString()
+        id: Date.now().toString(),
+        // Ensure symbol is standardized
+        symbol: stockData.symbol.trim().toUpperCase()
       };
 
       const updatedStocks = [...focusStocks, newStock];
@@ -94,7 +96,12 @@ export function useFocusStocks(userEmail?: string) {
       }
 
       const updatedStocks = focusStocks.map(stock => 
-        stock.id === stockId ? { ...stockData, id: stockId } : stock
+        stock.id === stockId ? { 
+          ...stockData, 
+          id: stockId,
+          // Ensure symbol is standardized
+          symbol: stockData.symbol.trim().toUpperCase()
+        } : stock
       );
       
       setFocusStocks(updatedStocks);

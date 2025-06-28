@@ -7,38 +7,30 @@ export function useTrades(userEmail?: string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load trades from API
-  const loadTrades = async () => {
+  // Load trades from localStorage
+  const loadTrades = () => {
     if (!userEmail) return;
     
     try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await apiService.getJournalEntries();
-      
-      if (response.success && response.data.entries) {
-        // Transform API data to match frontend Trade interface
-        const transformedTrades = response.data.entries.map((entry: any) => ({
-          id: entry._id,
-          symbol: entry.stockName,
-          type: 'BUY' as const, // Default to BUY, can be enhanced later
-          entryPrice: entry.entryPrice,
-          exitPrice: entry.exitPrice,
-          quantity: entry.quantity || 1,
-          entryDate: entry.entryDate.split('T')[0], // Convert to YYYY-MM-DD format
-          exitDate: entry.exitDate ? entry.exitDate.split('T')[0] : undefined,
-          status: entry.status === 'open' ? 'ACTIVE' : 'CLOSED' as 'ACTIVE' | 'CLOSED',
-          notes: entry.remarks
-        }));
-        
-        setTrades(transformedTrades);
+      const stored = localStorage.getItem(`trades_${userEmail}`);
+      if (stored) {
+        setTrades(JSON.parse(stored));
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load trades');
-      console.error('Load trades error:', err);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Error loading trades:', error);
+      setError('Failed to load trades');
+    }
+  };
+
+  // Save trades to localStorage
+  const saveTrades = (newTrades: Trade[]) => {
+    if (!userEmail) return;
+    
+    try {
+      localStorage.setItem(`trades_${userEmail}`, JSON.stringify(newTrades));
+    } catch (error) {
+      console.error('Error saving trades:', error);
+      setError('Failed to save trades');
     }
   };
 
@@ -72,42 +64,24 @@ export function useTrades(userEmail?: string) {
         console.log('✅ Hook validation passed for CLOSED trade');
       }
 
-      // CRITICAL: Transform frontend Trade to API JournalEntry format with proper handling
-      const baseEntryData = {
-        stockName: tradeData.symbol.toUpperCase().trim(),
-        entryPrice: Number(tradeData.entryPrice),
-        entryDate: tradeData.entryDate,
-        currentPrice: tradeData.status === 'CLOSED' && tradeData.exitPrice ? Number(tradeData.exitPrice) : Number(tradeData.entryPrice),
-        status: tradeData.status === 'ACTIVE' ? 'open' : 'closed',
-        remarks: tradeData.notes || '',
-        quantity: Number(tradeData.quantity),
-        isTeamTrade: false
+      // Ensure symbol is standardized
+      const standardizedTradeData = {
+        ...tradeData,
+        symbol: tradeData.symbol.trim().toUpperCase()
       };
 
-      // CRITICAL: Only include exit fields for closed trades
-      let entryData;
-      if (tradeData.status === 'CLOSED') {
-        entryData = {
-          ...baseEntryData,
-          exitPrice: Number(tradeData.exitPrice),
-          exitDate: tradeData.exitDate
-        };
-        console.log('🔒 Built CLOSED trade entry data with exit fields');
-      } else {
-        entryData = baseEntryData;
-        console.log('🔓 Built ACTIVE trade entry data without exit fields');
-      }
+      const newTrade: Trade = {
+        ...standardizedTradeData,
+        id: Date.now().toString()
+      };
+
+      const updatedTrades = [...trades, newTrade];
+      setTrades(updatedTrades);
+      saveTrades(updatedTrades);
       
-      console.log('📤 Final entry data being sent to API:', JSON.stringify(entryData, null, 2));
-      
-      const response = await apiService.createJournalEntry(entryData);
-      
-      if (response.success) {
-        console.log('✅ Trade created successfully, reloading trades');
-        await loadTrades(); // Reload from server
-      }
+      return newTrade;
     } catch (error) {
-      console.error('💥 Add trade error in hook:', error);
+      console.error('Add trade error:', error);
       throw error;
     }
   };
@@ -139,53 +113,31 @@ export function useTrades(userEmail?: string) {
         console.log('✅ Hook validation passed for CLOSED trade update');
       }
 
-      // CRITICAL: Transform frontend Trade to API JournalEntry format
-      const baseEntryData = {
-        stockName: tradeData.symbol.toUpperCase().trim(),
-        entryPrice: Number(tradeData.entryPrice),
-        entryDate: tradeData.entryDate,
-        currentPrice: tradeData.status === 'CLOSED' && tradeData.exitPrice ? Number(tradeData.exitPrice) : Number(tradeData.entryPrice),
-        status: tradeData.status === 'ACTIVE' ? 'open' : 'closed',
-        remarks: tradeData.notes || '',
-        quantity: Number(tradeData.quantity),
-        isTeamTrade: false
+      // Ensure symbol is standardized
+      const standardizedTradeData = {
+        ...tradeData,
+        symbol: tradeData.symbol.trim().toUpperCase()
       };
 
-      // CRITICAL: Only include exit fields for closed trades
-      let entryData;
-      if (tradeData.status === 'CLOSED') {
-        entryData = {
-          ...baseEntryData,
-          exitPrice: Number(tradeData.exitPrice),
-          exitDate: tradeData.exitDate
-        };
-        console.log('🔒 Built CLOSED trade update entry data with exit fields');
-      } else {
-        entryData = baseEntryData;
-        console.log('🔓 Built ACTIVE trade update entry data without exit fields');
-      }
+      const updatedTrades = trades.map(trade => 
+        trade.id === tradeId ? { ...standardizedTradeData, id: tradeId } : trade
+      );
       
-      console.log('📤 Final update entry data being sent to API:', JSON.stringify(entryData, null, 2));
+      setTrades(updatedTrades);
+      saveTrades(updatedTrades);
       
-      const response = await apiService.updateJournalEntry(tradeId, entryData);
-      
-      if (response.success) {
-        console.log('✅ Trade updated successfully, reloading trades');
-        await loadTrades(); // Reload from server
-      }
+      return updatedTrades.find(trade => trade.id === tradeId);
     } catch (error) {
-      console.error('💥 Update trade error in hook:', error);
+      console.error('Update trade error:', error);
       throw error;
     }
   };
 
   const deleteTrade = async (tradeId: string) => {
     try {
-      const response = await apiService.deleteJournalEntry(tradeId);
-      
-      if (response.success) {
-        await loadTrades(); // Reload from server
-      }
+      const updatedTrades = trades.filter(trade => trade.id !== tradeId);
+      setTrades(updatedTrades);
+      saveTrades(updatedTrades);
     } catch (error) {
       console.error('Delete trade error:', error);
       throw error;
