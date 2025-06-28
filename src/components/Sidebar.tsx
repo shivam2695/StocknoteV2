@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -9,7 +9,8 @@ import {
   PieChart,
   Bell,
   User,
-  Users
+  Users,
+  Zap
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -18,43 +19,17 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
-
-  // Check for unread notifications
-  useEffect(() => {
-    const checkUnreadNotifications = () => {
-      const currentUser = localStorage.getItem('currentUser');
-      if (!currentUser) return;
-      
-      const userEmail = JSON.parse(currentUser).email;
-      const stored = localStorage.getItem(`notifications_${userEmail}`);
-      
-      if (stored) {
-        const notifications = JSON.parse(stored);
-        const unreadCount = notifications.filter((n: any) => !n.read).length;
-        setUnreadNotifications(unreadCount);
-      }
-    };
-    
-    // Check on mount
-    checkUnreadNotifications();
-    
-    // Set up interval to check periodically
-    const interval = setInterval(checkUnreadNotifications, 10000); // Check every 10 seconds
-    
-    return () => clearInterval(interval);
-  }, []);
-
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'trades', label: 'Trading Journal', icon: FileText },
     { id: 'focus-stocks', label: 'Focus Stocks', icon: Target },
     { id: 'teams', label: 'Teams', icon: Users },
+    { id: 'superfast-demo', label: '⚡ SuperFast Demo', icon: Zap },
     { id: 'analytics', label: 'Analytics', icon: PieChart },
   ];
 
   const bottomMenuItems = [
-    { id: 'notifications', label: 'Notifications', icon: Bell, badge: unreadNotifications },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -94,6 +69,11 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
               {isActive && (
                 <div className="ml-auto w-2 h-2 bg-white rounded-full opacity-80" />
               )}
+              {item.id === 'superfast-demo' && !isActive && (
+                <div className="ml-auto">
+                  <span className="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded-full">NEW</span>
+                </div>
+              )}
             </button>
           );
         })}
@@ -116,11 +96,6 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
             >
               <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} />
               <span className="font-medium">{item.label}</span>
-              {item.id === 'notifications' && item.badge > 0 && (
-                <div className="ml-auto w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-                  <span className="text-xs text-white font-bold">{item.badge > 9 ? '9+' : item.badge}</span>
-                </div>
-              )}
             </button>
           );
         })}

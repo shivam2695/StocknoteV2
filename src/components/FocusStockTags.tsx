@@ -7,14 +7,14 @@ interface FocusStockTagsProps {
   selectedTag?: FocusStockTag;
   onTagChange: (tag: FocusStockTag) => void;
   disabled?: boolean;
-  showSelectedOnly?: boolean;
+  displayMode?: 'select' | 'display';
 }
 
 export default function FocusStockTags({ 
   selectedTag, 
   onTagChange, 
   disabled = false,
-  showSelectedOnly = false
+  displayMode = 'select'
 }: FocusStockTagsProps) {
   const tags = [
     {
@@ -47,37 +47,45 @@ export default function FocusStockTags({
     }
   ];
 
-  // If showSelectedOnly is true and we have a selected tag, only show that tag
-  const tagsToShow = showSelectedOnly && selectedTag 
-    ? tags.filter(tag => tag.id === selectedTag)
-    : tags;
+  // Display mode - show only the selected tag
+  if (displayMode === 'display') {
+    if (!selectedTag) {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+          No tag
+        </span>
+      );
+    }
 
+    const tag = tags.find(t => t.id === selectedTag);
+    if (!tag) return null;
+
+    const Icon = tag.icon;
+    
+    return (
+      <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${tag.selectedColor}`}>
+        <Icon className="w-3 h-3" />
+        <span>{tag.label}</span>
+      </span>
+    );
+  }
+
+  // Select mode - show dropdown or buttons for selection
   return (
-    <div className="flex flex-wrap gap-2">
-      {tagsToShow.map((tag) => {
-        const Icon = tag.icon;
-        const isSelected = selectedTag === tag.id;
-        
-        return (
-          <button
-            key={tag.id}
-            type="button"
-            onClick={() => onTagChange(tag.id)}
-            disabled={disabled}
-            className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-              isSelected ? tag.selectedColor : tag.color
-            } ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80 cursor-pointer'}`}
-          >
-            <Icon className="w-3 h-3" />
-            <span>{tag.label}</span>
-          </button>
-        );
-      })}
-      
-      {/* Show "No tag" message if no tag is selected and we're in showSelectedOnly mode */}
-      {showSelectedOnly && !selectedTag && (
-        <span className="text-xs text-gray-500">No tag</span>
-      )}
+    <div className="relative">
+      <select
+        value={selectedTag || ''}
+        onChange={(e) => onTagChange(e.target.value as FocusStockTag)}
+        disabled={disabled}
+        className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      >
+        <option value="">No tag</option>
+        {tags.map((tag) => (
+          <option key={tag.id} value={tag.id}>
+            {tag.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

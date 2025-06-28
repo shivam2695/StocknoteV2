@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { FocusStock } from '../types/FocusStock';
-import { Target, TrendingUp, CheckCircle, Circle, Edit, Trash2, Calendar, IndianRupee, Clock, RefreshCw } from 'lucide-react';
+import { Target, TrendingUp, CheckCircle, Circle, Edit, Trash2, Calendar } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import FocusStockTags, { FocusStockTag } from './FocusStockTags';
-import { stockCsvService } from '../services/stockCsvService';
 
 interface FocusStocksTableProps {
   stocks: FocusStock[];
@@ -11,7 +10,6 @@ interface FocusStocksTableProps {
   onDeleteStock: (stockId: string) => void;
   onMarkTradeTaken: (stockId: string, tradeTaken: boolean, tradeDate?: string) => void;
   onUpdateStockTag?: (stockId: string, tag: FocusStockTag) => void;
-  onRefreshCMP?: () => void;
 }
 
 export default function FocusStocksTable({ 
@@ -19,12 +17,10 @@ export default function FocusStocksTable({
   onEditStock, 
   onDeleteStock, 
   onMarkTradeTaken,
-  onUpdateStockTag,
-  onRefreshCMP
+  onUpdateStockTag
 }: FocusStocksTableProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; stock?: FocusStock }>({ isOpen: false });
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -43,17 +39,16 @@ export default function FocusStocksTable({
     });
   };
 
-  // Calculate aging in days
-  const calculateAging = (dateAdded: string, tradeDate?: string) => {
-    const startDate = new Date(dateAdded);
-    const endDate = tradeDate ? new Date(tradeDate) : new Date();
-    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
   const calculatePotentialReturn = (currentPrice: number, targetPrice: number) => {
     return ((targetPrice - currentPrice) / currentPrice) * 100;
+  };
+
+  const calculateAging = (dateString: string) => {
+    const entryDate = new Date(dateString);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - entryDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   };
 
   const getReturnColor = (returnPercentage: number) => {
@@ -64,28 +59,6 @@ export default function FocusStocksTable({
 
   const getStockLogo = (symbol: string) => {
     return symbol.charAt(0).toUpperCase();
-  };
-
-  // Get CMP for a stock symbol
-  const getCMP = (symbol: string) => {
-    if (!stockCsvService.isDataLoaded()) return null;
-    const stock = stockCsvService.getStockBySymbol(symbol);
-    return stock ? stock.cmp : null;
-  };
-
-  // Handle CMP refresh
-  const handleRefreshCMP = async () => {
-    setIsRefreshing(true);
-    try {
-      await stockCsvService.refreshData();
-      if (onRefreshCMP) {
-        onRefreshCMP();
-      }
-    } catch (error) {
-      console.error('Failed to refresh CMP:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
   };
 
   const handleTradeTakenToggle = (stock: FocusStock) => {
@@ -124,48 +97,32 @@ export default function FocusStocksTable({
   return (
     <>
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-900">Focus Stocks List</h3>
-          <button
-            onClick={handleRefreshCMP}
-            disabled={isRefreshing}
-            className="flex items-center space-x-2 px-3 py-2 bg-green-100 hover:bg-green-200 rounded-lg transition-colors disabled:opacity-50 text-sm"
-            title="Refresh CMP from Google Sheet"
-          >
-            <RefreshCw className={`w-4 h-4 text-green-600 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="text-green-700 font-medium">Refresh</span>
-          </button>
-        </div>
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed">
+          <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Status</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Symbol</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">CMP</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Current</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Target</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Return</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-40">Reason</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Tag</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Date</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Aging</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Actions</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Symbol</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Current</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Target</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Return</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Reason</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Tag</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Aging</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {stocks.map((stock) => {
                 const potentialReturn = calculatePotentialReturn(stock.currentPrice, stock.targetPrice);
-                const cmp = getCMP(stock.symbol);
-                const aging = calculateAging(stock.dateAdded, stock.tradeDate);
-                
+                const aging = calculateAging(stock.dateAdded);
                 return (
                   <tr key={stock.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-3 px-3">
-                      <div className="flex items-center space-x-1">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleTradeTakenToggle(stock)}
-                          className="flex items-center space-x-1 hover:bg-gray-100 p-1 rounded transition-colors"
+                          className="flex items-center space-x-2 hover:bg-gray-100 p-1 rounded transition-colors"
                         >
                           {stock.tradeTaken ? (
                             <CheckCircle className="w-4 h-4 text-green-500" />
@@ -188,71 +145,62 @@ export default function FocusStocksTable({
                         </div>
                       )}
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-4">
                       <div className="flex items-center space-x-2">
                         <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
                           <span className="text-white font-bold text-xs">{getStockLogo(stock.symbol)}</span>
                         </div>
-                        <span className="font-semibold text-gray-900 text-sm">{stock.symbol}</span>
+                        <span className="font-semibold text-gray-900">{stock.symbol}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-3">
-                      {cmp ? (
-                        <div className="flex items-center space-x-1">
-                          <IndianRupee className="w-3 h-3 text-green-500" />
-                          <span className="text-sm font-medium text-green-600">{cmp.toFixed(2)}</span>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-3 text-gray-900 text-sm">{formatCurrency(stock.currentPrice)}</td>
-                    <td className="py-3 px-3 text-gray-900 text-sm">{formatCurrency(stock.targetPrice)}</td>
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-4 text-gray-900">{formatCurrency(stock.currentPrice)}</td>
+                    <td className="py-3 px-4 text-gray-900">{formatCurrency(stock.targetPrice)}</td>
+                    <td className="py-3 px-4">
                       <div className="flex items-center space-x-1">
                         <TrendingUp className={`w-3 h-3 ${getReturnColor(potentialReturn)}`} />
-                        <span className={`font-semibold text-sm ${getReturnColor(potentialReturn)}`}>
+                        <span className={`font-semibold text-xs ${getReturnColor(potentialReturn)}`}>
                           {potentialReturn.toFixed(1)}%
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 px-3">
-                      <div className="max-w-xs truncate">
-                        <span className="text-gray-700 text-sm">{stock.reason}</span>
+                    <td className="py-3 px-4">
+                      <div className="max-w-32">
+                        <span className="text-gray-700 text-xs truncate block">{stock.reason}</span>
                         {stock.notes && (
                           <div className="text-xs text-gray-500 mt-1 truncate">{stock.notes}</div>
                         )}
                       </div>
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-4">
                       <FocusStockTags
                         selectedTag={stock.tag}
                         onTagChange={(tag) => handleTagChange(stock.id, tag)}
-                        showSelectedOnly={true}
+                        displayMode="display"
                       />
                     </td>
-                    <td className="py-3 px-3 text-gray-600 text-sm">{formatDate(stock.dateAdded)}</td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center space-x-1">
-                        <Clock className="w-3 h-3 text-gray-400" />
-                        <span className="text-sm text-gray-600">{aging} days</span>
+                    <td className="py-3 px-4">
+                      <div className="text-xs text-gray-600">
+                        <span className="font-medium">{aging}</span> days
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {formatDate(stock.dateAdded)}
                       </div>
                     </td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center space-x-2">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center space-x-1">
                         <button
                           onClick={() => onEditStock(stock)}
-                          className="text-blue-600 hover:text-blue-800 transition-colors"
+                          className="text-blue-600 hover:text-blue-800 transition-colors p-1"
                           title="Edit Focus Stock"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => handleDeleteClick(stock)}
-                          className="text-red-600 hover:text-red-800 transition-colors"
+                          className="text-red-600 hover:text-red-800 transition-colors p-1"
                           title="Delete Focus Stock"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3 h-3" />
                         </button>
                       </div>
                     </td>
