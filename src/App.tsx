@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import TradeTable from './components/TradeTable';
 import TradeModal from './components/TradeModal';
 import FocusStocks from './components/FocusStocks';
 import Teams from './components/Teams';
+import AuthContainer from './components/AuthContainer';
 import Header from './components/Header';
 import WelcomeModal from './components/WelcomeModal';
 import WelcomeNotification from './components/WelcomeNotification';
@@ -22,46 +20,6 @@ import { useAuth } from './hooks/useAuth';
 import { Trade } from './types/Trade';
 import { FocusStockTag } from './components/FocusStockTags';
 import { PlusCircle, Menu, X } from 'lucide-react';
-import AuthUI from './components/AuthUI';
-
-function App() {
-  const { isAuthenticated, user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  // If not authenticated and not on landing page, show auth UI
-  if (!isAuthenticated) {
-    return (
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <Router>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="*" element={<AuthUI />} />
-          </Routes>
-        </Router>
-      </TooltipProvider>
-    );
-  }
-
-  // If authenticated, show the app content
-  return (
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <Router>
-        <AppContent />
-      </Router>
-    </TooltipProvider>
-  );
-}
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -73,7 +31,7 @@ function AppContent() {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, login, logout, signUp } = useAuth();
   
   // Pass user email to hooks for user-specific data
   const { 
@@ -116,6 +74,26 @@ function AppContent() {
       setShowWelcomeNotification(true);
     }
   }, [isAuthenticated, user]);
+
+  // Show auth container if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navigate to="/login" />
+        <HealthCheck />
+      </>
+    );
+  }
+
+  async function handleLogin(email: string, password: string) {
+    await login(email, password);
+    setShowWelcomeModal(true);
+  }
+
+  async function handleSignUp(name: string, email: string, password: string) {
+    await signUp(name, email, password);
+    setShowWelcomeModal(true);
+  }
 
   const handleEditTrade = (trade: Trade) => {
     setEditingTrade(trade);
@@ -563,6 +541,20 @@ function AppContent() {
         userName={user?.name || ''}
       />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<AuthContainer onLogin={() => {}} onSignUp={() => {}} />} />
+        <Route path="/signup" element={<AuthContainer onLogin={() => {}} onSignUp={() => {}} />} />
+        <Route path="/app/*" element={<AppContent />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 

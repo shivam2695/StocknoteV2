@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AuthState, User } from '../types/Auth';
 import { apiService } from '../services/api';
-import { toast } from './use-toast';
 
 export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>({
@@ -69,15 +68,9 @@ export const useAuth = () => {
 
   const signUp = async (name: string, email: string, password: string) => {
     try {
-      console.log('Attempting signup with:', email);
       const response = await apiService.signup(name, email, password);
       
       if (response.success) {
-        toast({
-          title: "Account created successfully",
-          description: "You can now log in with your credentials",
-        });
-        
         // For signup, we need email verification
         return { 
           requiresVerification: response.data?.requiresEmailVerification,
@@ -104,8 +97,14 @@ export const useAuth = () => {
         
         users.push({ ...user, password, verified: true });
         localStorage.setItem('stockNoteUsers', JSON.stringify(users));
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        localStorage.setItem('authToken', 'local-token-' + Date.now());
         
-        // Don't auto-login after signup
+        setAuthState({
+          isAuthenticated: true,
+          user: user,
+        });
+        
         return { success: true, data: { user } };
       }
       
@@ -115,22 +114,15 @@ export const useAuth = () => {
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('Attempting login with:', email);
       const response = await apiService.login(email, password);
       
       if (response.success && response.data.user) {
-        console.log('Login successful, updating auth state');
         setAuthState({
           isAuthenticated: true,
           user: response.data.user,
         });
         localStorage.setItem('currentUser', JSON.stringify(response.data.user));
-        localStorage.setItem('authToken', response.data.token || 'dummy-token');
-        
-        toast({
-          title: "Login successful",
-          description: `Welcome back, ${response.data.user.name}!`,
-        });
+        console.log('Login successful, user stored');
         
         return response;
       }
@@ -154,23 +146,12 @@ export const useAuth = () => {
         }
         
         const userData = { name: user.name, email: user.email };
-        
-        // Update auth state
         setAuthState({
           isAuthenticated: true,
           user: userData,
         });
-        
-        // Store auth data
         localStorage.setItem('currentUser', JSON.stringify(userData));
         localStorage.setItem('authToken', 'local-token-' + Date.now());
-        
-        console.log('Local login successful, auth state updated');
-        
-        toast({
-          title: "Login successful",
-          description: `Welcome back, ${userData.name}!`,
-        });
         
         return { success: true, data: { user: userData } };
       }
@@ -230,11 +211,6 @@ export const useAuth = () => {
       localStorage.removeItem('currentUser');
       localStorage.removeItem('authToken');
       console.log('Logged out, storage cleared');
-      
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out",
-      });
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   LogOut, 
   User, 
@@ -16,7 +16,6 @@ import { Notification } from '../types/Notification';
 import NotificationCenter from './NotificationCenter';
 import ProfileModal from './ProfileModal';
 import ConfirmationModal from './ConfirmationModal';
-import { useAuth } from '../hooks/useAuth';
 
 interface HeaderProps {
   user: UserType;
@@ -48,7 +47,6 @@ const Header: React.FC<HeaderProps> = ({
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [userProfilePhoto, setUserProfilePhoto] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { logout } = useAuth();
 
   // Load profile photo from localStorage
   useEffect(() => {
@@ -83,7 +81,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   const handleLogoutConfirm = () => {
-    logout();
+    onLogout();
     setShowLogoutConfirm(false);
   };
 
