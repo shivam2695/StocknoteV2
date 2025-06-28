@@ -105,6 +105,9 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
 
     try {
       await stockCsvService.loadStocks();
+      if (stockCsvService.isUsingFallback()) {
+        setStocksError('Using offline stock data. Live prices unavailable.');
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load stock data';
       setStocksError(errorMessage);
@@ -323,14 +326,14 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
 
           {/* Stock Error */}
           {stocksError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
               <div className="flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 text-red-500" />
-                <span className="text-sm text-red-800">{stocksError}</span>
+                <AlertCircle className="w-4 h-4 text-yellow-500" />
+                <span className="text-sm text-yellow-800">{stocksError}</span>
                 <button
                   type="button"
                   onClick={loadStockData}
-                  className="ml-auto text-red-600 hover:text-red-500 text-sm"
+                  className="ml-auto text-yellow-600 hover:text-yellow-500 text-sm"
                 >
                   Retry
                 </button>
@@ -397,7 +400,7 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
                   <IndianRupee className="w-5 h-5 text-blue-600" />
                   <div>
                     <div className="text-sm font-medium text-blue-900">Current Market Price (CMP)</div>
-                    <div className="text-xs text-blue-700">NSE • Live Price</div>
+                    <div className="text-xs text-blue-700">NSE • {stockCsvService.isUsingFallback() ? 'Offline Data' : 'Live Price'}</div>
                   </div>
                 </div>
                 <div className="text-right">
