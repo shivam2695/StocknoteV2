@@ -1,12 +1,13 @@
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff, TrendingUp, BarChart3, Shield, Zap, Mail, Lock, User } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const location = useLocation();
+  const [isLogin, setIsLogin] = useState(location.pathname === "/login");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -19,7 +20,19 @@ const Auth = () => {
   const [error, setError] = useState("");
   
   const navigate = useNavigate();
-  const { login, signUp } = useAuth();
+  const { login, signUp, isAuthenticated } = useAuth();
+
+  // If user is already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/app/dashboard", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Update login/signup mode based on URL path
+  useEffect(() => {
+    setIsLogin(location.pathname === "/login");
+  }, [location.pathname]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -71,14 +84,19 @@ const Auth = () => {
     try {
       if (isLogin) {
         await login(formData.email, formData.password);
-        navigate("/app/dashboard");
+        // The useEffect will handle the redirect when isAuthenticated changes
       } else {
         await signUp(formData.fullName || "", formData.email, formData.password);
-        // After signup, user might need to verify email before login
-        // For now, we'll just navigate to login
+        // After signup, switch to login view
         setIsLogin(true);
+        setFormData(prev => ({
+          ...prev,
+          password: "",
+          confirmPassword: ""
+        }));
       }
     } catch (err: any) {
+      console.error("Auth error:", err);
       setError(err.message || (isLogin ? "Login failed" : "Signup failed"));
     } finally {
       setIsLoading(false);
@@ -204,7 +222,10 @@ const Auth = () => {
           {/* Toggle Buttons */}
           <div className="flex mb-8 p-1 bg-gray-100 rounded-xl">
             <Button
-              onClick={() => setIsLogin(true)}
+              onClick={() => {
+                setIsLogin(true);
+                navigate("/login", { replace: true });
+              }}
               className={`flex-1 rounded-lg transition-all duration-300 text-sm font-medium ${
                 isLogin
                   ? "bg-white text-gray-900 shadow-sm"
@@ -215,7 +236,10 @@ const Auth = () => {
               Sign In
             </Button>
             <Button
-              onClick={() => setIsLogin(false)}
+              onClick={() => {
+                setIsLogin(false);
+                navigate("/signup", { replace: true });
+              }}
               className={`flex-1 rounded-lg transition-all duration-300 text-sm font-medium ${
                 !isLogin
                   ? "bg-white text-gray-900 shadow-sm"
