@@ -135,15 +135,15 @@ export default function FocusStocksTable({
             <thead className="bg-gray-50">
               <tr>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Status</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Symbol</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">CMP</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Entry Price</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Target</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Return</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-40">Reason</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-32">Tag</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Aging</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-16">Actions</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-32">Symbol</th>
+                <th className="text-center py-3 px-3 font-semibold text-gray-700 w-24">CMP</th>
+                <th className="text-center py-3 px-3 font-semibold text-gray-700 w-24">Entry Price</th>
+                <th className="text-center py-3 px-3 font-semibold text-gray-700 w-24">Target</th>
+                <th className="text-center py-3 px-3 font-semibold text-gray-700 w-20">Return</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-36">Reason</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Tag</th>
+                <th className="text-center py-3 px-3 font-semibold text-gray-700 w-24">Aging</th>
+                <th className="text-center py-3 px-3 font-semibold text-gray-700 w-16">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -187,15 +187,15 @@ export default function FocusStocksTable({
                     </td>
                     <td className="py-3 px-3">
                       <div className="flex items-center space-x-1">
-                        <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                        <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
                           <span className="text-white font-bold text-xs">{getStockLogo(stock.symbol)}</span>
                         </div>
-                        <span className="font-semibold text-gray-900">{stock.symbol}</span>
+                        <span className="font-semibold text-gray-900 truncate">{stock.symbol}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-3 text-center">
                       {stockPrices[stock.symbol] ? (
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center justify-center space-x-1">
                           <IndianRupee className="w-3 h-3 text-gray-500" />
                           <span className="text-gray-900">{stockPrices[stock.symbol].toLocaleString('en-IN')}</span>
                         </div>
@@ -203,20 +203,20 @@ export default function FocusStocksTable({
                         <span className="text-gray-400">—</span>
                       )}
                     </td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center space-x-1">
+                    <td className="py-3 px-3 text-center">
+                      <div className="flex items-center justify-center space-x-1">
                         <IndianRupee className="w-3 h-3 text-gray-500" />
                         <span className="text-gray-900">{stock.currentPrice.toLocaleString('en-IN')}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center space-x-1">
+                    <td className="py-3 px-3 text-center">
+                      <div className="flex items-center justify-center space-x-1">
                         <IndianRupee className="w-3 h-3 text-gray-500" />
                         <span className="text-gray-900">{stock.targetPrice.toLocaleString('en-IN')}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center space-x-1">
+                    <td className="py-3 px-3 text-center">
+                      <div className="flex items-center justify-center space-x-1">
                         <TrendingUp className={`w-3 h-3 ${getReturnColor(potentialReturn)}`} />
                         <span className={`font-semibold text-xs ${getReturnColor(potentialReturn)}`}>
                           {potentialReturn.toFixed(1)}%
@@ -238,7 +238,7 @@ export default function FocusStocksTable({
                         displayMode="display"
                       />
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-3 text-center">
                       <div className="text-xs text-gray-600">
                         <span className="font-medium">{aging}</span> days
                       </div>
@@ -246,8 +246,8 @@ export default function FocusStocksTable({
                         {formatDate(stock.dateAdded)}
                       </div>
                     </td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center space-x-1">
+                    <td className="py-3 px-3 text-center">
+                      <div className="flex items-center justify-center space-x-1">
                         <button
                           onClick={() => onEditStock(stock)}
                           className="text-blue-600 hover:text-blue-800 transition-colors p-1"
