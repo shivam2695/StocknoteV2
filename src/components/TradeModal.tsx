@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trade } from '../types/Trade';
 import { X, TrendingUp, TrendingDown, AlertCircle, RefreshCw, DollarSign } from 'lucide-react';
-import StockSearchInput from './StockSearchInput';
-import { StockData } from '../services/stockApi';
+import { stockCsvService, StockData } from '../services/stockCsvService';
 
 interface TradeModalProps {
   isOpen: boolean;
@@ -24,9 +23,21 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
     notes: ''
   });
 
+  // Stock search states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<StockData[]>([]);
+  const [selectedStock, setSelectedStock] = useState<StockData | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isLoadingStocks, setIsLoadingStocks] = useState(false);
+  const [stocksError, setStocksError] = useState('');
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentStockData, setCurrentStockData] = useState<StockData | null>(null);
+
+  // Load stock data on component mount
+  useEffect(() => {
+    loadStockData();
+  }, []);
 
   useEffect(() => {
     if (trade) {
@@ -41,6 +52,14 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
         status: trade.status,
         notes: trade.notes || ''
       });
+      setSearchQuery(trade.symbol);
+      // Try to find the stock in our data
+      if (stockCsvService.isDataLoaded()) {
+        const stock = stockCsvService.getStockBySymbol(trade.symbol);
+        if (stock) {
+          setSelectedStock(stock);
+        }
+      }
     } else {
       setFormData({
         symbol: '',
@@ -53,10 +72,86 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
         status: 'ACTIVE',
         notes: ''
       });
+      setSearchQuery('');
+      setSelectedStock(null);
     }
     setErrors({});
-    setCurrentStockData(null);
+    setSearchResults([]);
+    setShowDropdown(false);
   }, [trade, isOpen]);
+
+  const loadStockData = async () => {
+    if (stockCsvService.isDataLoaded()) {
+      return;
+    }
+
+    setIsLoadingStocks(true);
+    setStocksError('');
+
+    try {
+      await stockCsvService.loadStocks();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load stock data';
+      setStocksError(errorMessage);
+    } finally {
+      setIsLoadingStocks(false);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    setStocksError('');
+
+    if (!stockCsvService.isDataLoaded()) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    if (query.length < 2) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    // Ultra-fast fuzzy search using Fuse.js
+    const results = stockCsvService.searchStocks(query, 8);
+    setSearchResults(results);
+    setShowDropdown(results.length > 0);
+  };
+
+  const handleStockSelect = (stock: StockData) => {
+    setSelectedStock(stock);
+    setSearchQuery(stock.symbol);
+    setFormData(prev => ({ ...prev, symbol: stock.symbol }));
+    setSearchResults([]);
+    setShowDropdown(false);
+    setStocksError('');
+    
+    // Clear symbol error
+    if (errors.symbol) {
+      setErrors(prev => ({ ...prev, symbol: '' }));
+    }
+  };
+
+  const handleUseCMPAsEntryPrice = () => {
+    if (selectedStock) {
+      setFormData(prev => ({ ...prev, entryPrice: selectedStock.cmp.toString() }));
+      if (errors.entryPrice) {
+        setErrors(prev => ({ ...prev, entryPrice: '' }));
+      }
+    }
+  };
+
+  const handleUseCMPAsExitPrice = () => {
+    if (selectedStock) {
+      setFormData(prev => ({ ...prev, exitPrice: selectedStock.cmp.toString() }));
+      if (errors.exitPrice) {
+        setErrors(prev => ({ ...prev, exitPrice: '' }));
+      }
+    }
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -251,39 +346,6 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
     }
   };
 
-  const handleStockSelect = (symbol: string, stockData?: StockData) => {
-    setFormData(prev => ({ ...prev, symbol }));
-    setCurrentStockData(stockData || null);
-    
-    // Clear symbol error
-    if (errors.symbol) {
-      setErrors(prev => ({ ...prev, symbol: '' }));
-    }
-  };
-
-  const handlePriceUpdate = (price: number) => {
-    // Don't auto-fill entry price - let user decide
-    // This is just to show the current market price
-  };
-
-  const handleUseCMPAsEntryPrice = () => {
-    if (currentStockData) {
-      setFormData(prev => ({ ...prev, entryPrice: currentStockData.price.toString() }));
-      if (errors.entryPrice) {
-        setErrors(prev => ({ ...prev, entryPrice: '' }));
-      }
-    }
-  };
-
-  const handleUseCMPAsExitPrice = () => {
-    if (currentStockData) {
-      setFormData(prev => ({ ...prev, exitPrice: currentStockData.price.toString() }));
-      if (errors.exitPrice) {
-        setErrors(prev => ({ ...prev, exitPrice: '' }));
-      }
-    }
-  };
-
   const handleStatusChange = (newStatus: 'ACTIVE' | 'CLOSED') => {
     console.log('📊 Status changed to:', newStatus);
     setFormData(prev => ({ 
@@ -341,22 +403,75 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
             </div>
           )}
 
+          {/* Stock Loading Status */}
+          {isLoadingStocks && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-center space-x-2">
+                <RefreshCw className="w-4 h-4 text-blue-600 animate-spin" />
+                <span className="text-sm text-blue-800">Loading stock data...</span>
+              </div>
+            </div>
+          )}
+
+          {/* Stock Error */}
+          {stocksError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-red-500" />
+                <span className="text-sm text-red-800">{stocksError}</span>
+                <button
+                  type="button"
+                  onClick={loadStockData}
+                  className="ml-auto text-red-600 hover:text-red-500 text-sm"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Stock Search Input */}
-          <div>
+          <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Stock Symbol *
+              🔍 Stock Symbol *
             </label>
-            <StockSearchInput
-              value={formData.symbol}
-              onChange={handleStockSelect}
-              onPriceUpdate={handlePriceUpdate}
-              placeholder="Search Indian stocks (e.g., RELIANCE, TCS)"
-              className={errors.symbol ? 'border-red-500' : ''}
-              disabled={isSubmitting}
-              required
-              showPrice={true}
-              autoFetchPrice={false}
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.symbol ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Search stocks (e.g., RELIANCE, TCS, HDFC)"
+              disabled={isSubmitting || isLoadingStocks}
+              autoComplete="off"
             />
+            
+            {/* Search Results Dropdown */}
+            {showDropdown && searchResults.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                {searchResults.map((stock, index) => (
+                  <button
+                    key={`${stock.symbol}-${index}`}
+                    type="button"
+                    onClick={() => handleStockSelect(stock)}
+                    className="w-full px-4 py-3 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900">{stock.label}</div>
+                        <div className="text-sm text-gray-600">NSE • Indian Stock</div>
+                      </div>
+                      <div className="text-right ml-4">
+                        <div className="font-bold text-green-600">{formatCurrency(stock.cmp)}</div>
+                        <div className="text-xs text-gray-500">Live CMP</div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
             {errors.symbol && (
               <div className="mt-1 flex items-center space-x-1">
                 <AlertCircle className="w-4 h-4 text-red-500" />
@@ -365,30 +480,20 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
             )}
           </div>
 
-          {/* Current Market Price (CMP) Display */}
-          {currentStockData && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          {/* Selected Stock CMP Display */}
+          {selectedStock && (
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
-                  <DollarSign className="w-5 h-5 text-blue-600" />
+                  <DollarSign className="w-5 h-5 text-green-600" />
                   <div>
-                    <div className="text-sm font-medium text-blue-900">Current Market Price (CMP)</div>
-                    <div className="text-xs text-blue-700">{currentStockData.exchange} • Live Price</div>
+                    <div className="text-sm font-medium text-green-900">Current Market Price (CMP)</div>
+                    <div className="text-xs text-green-700">Live CMP via Google Sheet (delayed by 2–5 mins)</div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-bold text-blue-900">
-                    {formatCurrency(currentStockData.price)}
-                  </div>
-                  <div className={`text-sm flex items-center justify-end ${
-                    currentStockData.change >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {currentStockData.change >= 0 ? (
-                      <TrendingUp className="w-3 h-3 mr-1" />
-                    ) : (
-                      <TrendingDown className="w-3 h-3 mr-1" />
-                    )}
-                    {currentStockData.change >= 0 ? '+' : ''}{currentStockData.change.toFixed(2)} ({currentStockData.changePercent.toFixed(2)}%)
+                  <div className="text-2xl font-bold text-green-600">
+                    CMP: {formatCurrency(selectedStock.cmp)}
                   </div>
                 </div>
               </div>
