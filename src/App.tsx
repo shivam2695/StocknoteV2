@@ -261,6 +261,12 @@ function App() {
                   onDeleteTrade={deleteTrade}
                   onUpdateTrade={updateTrade}
                   showFilters={true}
+                  onRefreshCMP={() => {
+                    // Refresh stock data
+                    import('./services/stockCsvService').then(module => {
+                      module.stockCsvService.refreshData();
+                    });
+                  }}
                 />
               </div>
             </div>
