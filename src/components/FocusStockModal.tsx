@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FocusStock } from '../types/FocusStock';
-import { X, Target, AlertCircle, RefreshCw, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
-import StockSearchInput from './StockSearchInput';
+import { X, Target, AlertCircle, RefreshCw, IndianRupee, TrendingUp, TrendingDown } from 'lucide-react';
 import FocusStockTags, { FocusStockTag } from './FocusStockTags';
-import { StockData } from '../services/stockApi';
+import { stockCsvService, StockData } from '../services/stockCsvService';
 
 interface FocusStockModalProps {
   isOpen: boolean;
@@ -25,9 +24,34 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
     tag: '' as FocusStockTag | ''
   });
 
+  // Stock search states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<StockData[]>([]);
+  const [selectedStock, setSelectedStock] = useState<StockData | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isLoadingStocks, setIsLoadingStocks] = useState(false);
+  const [stocksError, setStocksError] = useState('');
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentStockData, setCurrentStockData] = useState<StockData | null>(null);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Load stock data on component mount
+  useEffect(() => {
+    loadStockData();
+  }, []);
 
   useEffect(() => {
     if (stock) {
@@ -42,6 +66,15 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
         notes: stock.notes || '',
         tag: stock.tag || ''
       });
+      setSearchQuery(stock.symbol);
+      
+      // Try to find the stock in our data
+      if (stockCsvService.isDataLoaded()) {
+        const stockData = stockCsvService.getStockBySymbol(stock.symbol);
+        if (stockData) {
+          setSelectedStock(stockData);
+        }
+      }
     } else {
       setFormData({
         symbol: '',
@@ -54,10 +87,75 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
         notes: '',
         tag: ''
       });
+      setSearchQuery('');
+      setSelectedStock(null);
     }
     setErrors({});
-    setCurrentStockData(null);
+    setSearchResults([]);
+    setShowDropdown(false);
   }, [stock, isOpen]);
+
+  const loadStockData = async () => {
+    if (stockCsvService.isDataLoaded()) {
+      return;
+    }
+
+    setIsLoadingStocks(true);
+    setStocksError('');
+
+    try {
+      await stockCsvService.loadStocks();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load stock data';
+      setStocksError(errorMessage);
+    } finally {
+      setIsLoadingStocks(false);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    setStocksError('');
+
+    if (!stockCsvService.isDataLoaded()) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    if (query.length < 2) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    // Ultra-fast fuzzy search using Fuse.js
+    const results = stockCsvService.searchStocks(query, 8);
+    setSearchResults(results);
+    setShowDropdown(results.length > 0);
+  };
+
+  const handleStockSelect = (stock: StockData) => {
+    setSelectedStock(stock);
+    setSearchQuery(stock.symbol);
+    setFormData(prev => ({ 
+      ...prev, 
+      symbol: stock.symbol,
+      currentPrice: stock.cmp.toString()
+    }));
+    setSearchResults([]);
+    setShowDropdown(false);
+    setStocksError('');
+    
+    // Clear related errors
+    if (errors.symbol) {
+      setErrors(prev => ({ ...prev, symbol: '' }));
+    }
+    if (errors.currentPrice) {
+      setErrors(prev => ({ ...prev, currentPrice: '' }));
+    }
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -172,24 +270,13 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
     }
   };
 
-  const handleStockSelect = (symbol: string, stockData?: StockData) => {
-    setFormData(prev => ({ ...prev, symbol }));
-    setCurrentStockData(stockData || null);
-    
-    // Clear symbol error
-    if (errors.symbol) {
-      setErrors(prev => ({ ...prev, symbol: '' }));
-    }
-  };
-
-  const handlePriceUpdate = (price: number) => {
-    // Don't auto-fill current price - let user decide
-    // This is just to show the current market price
+  const handleTagChange = (tag: FocusStockTag) => {
+    setFormData(prev => ({ ...prev, tag }));
   };
 
   const handleUseCMPAsCurrentPrice = () => {
-    if (currentStockData) {
-      setFormData(prev => ({ ...prev, currentPrice: currentStockData.price.toString() }));
+    if (selectedStock) {
+      setFormData(prev => ({ ...prev, currentPrice: selectedStock.cmp.toString() }));
       if (errors.currentPrice) {
         setErrors(prev => ({ ...prev, currentPrice: '' }));
       }
@@ -203,10 +290,6 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(amount);
-  };
-
-  const handleTagChange = (tag: FocusStockTag) => {
-    setFormData(prev => ({ ...prev, tag }));
   };
 
   if (!isOpen) return null;
@@ -228,22 +311,76 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Stock Loading Status */}
+          {isLoadingStocks && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-center space-x-2">
+                <RefreshCw className="w-4 h-4 text-blue-600 animate-spin" />
+                <span className="text-sm text-blue-800">Loading stock data...</span>
+              </div>
+            </div>
+          )}
+
+          {/* Stock Error */}
+          {stocksError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-red-500" />
+                <span className="text-sm text-red-800">{stocksError}</span>
+                <button
+                  type="button"
+                  onClick={loadStockData}
+                  className="ml-auto text-red-600 hover:text-red-500 text-sm"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Stock Search Input */}
-          <div>
+          <div className="relative" ref={dropdownRef}>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Stock Symbol *
             </label>
-            <StockSearchInput
-              value={formData.symbol}
-              onChange={handleStockSelect}
-              onPriceUpdate={handlePriceUpdate}
-              placeholder="Search Indian stocks (e.g., RELIANCE, TCS)"
-              className={errors.symbol ? 'border-red-500' : ''}
-              disabled={isSubmitting}
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.symbol ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Search stocks (e.g., RELIANCE, TCS, HDFC)"
+              disabled={isSubmitting || isLoadingStocks}
+              autoComplete="off"
               required
-              showPrice={true}
-              autoFetchPrice={false}
             />
+            
+            {/* Search Results Dropdown */}
+            {showDropdown && searchResults.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                {searchResults.map((stock, index) => (
+                  <button
+                    key={`${stock.symbol}-${index}`}
+                    type="button"
+                    onClick={() => handleStockSelect(stock)}
+                    className="w-full px-4 py-3 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900">{stock.label}</div>
+                        <div className="text-sm text-gray-600">NSE • Indian Stock</div>
+                      </div>
+                      <div className="text-right ml-4">
+                        <div className="font-bold text-green-600">{formatCurrency(stock.cmp)}</div>
+                        <div className="text-xs text-gray-500">Live CMP</div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
             {errors.symbol && (
               <div className="mt-1 flex items-center space-x-1">
                 <AlertCircle className="w-4 h-4 text-red-500" />
@@ -253,29 +390,19 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
           </div>
 
           {/* Current Market Price (CMP) Display */}
-          {currentStockData && (
+          {selectedStock && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
-                  <DollarSign className="w-5 h-5 text-blue-600" />
+                  <IndianRupee className="w-5 h-5 text-blue-600" />
                   <div>
                     <div className="text-sm font-medium text-blue-900">Current Market Price (CMP)</div>
-                    <div className="text-xs text-blue-700">{currentStockData.exchange} • Live Price</div>
+                    <div className="text-xs text-blue-700">NSE • Live Price</div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold text-blue-900">
-                    {formatCurrency(currentStockData.price)}
-                  </div>
-                  <div className={`text-sm flex items-center justify-end ${
-                    currentStockData.change >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {currentStockData.change >= 0 ? (
-                      <TrendingUp className="w-3 h-3 mr-1" />
-                    ) : (
-                      <TrendingDown className="w-3 h-3 mr-1" />
-                    )}
-                    {currentStockData.change >= 0 ? '+' : ''}{currentStockData.change.toFixed(2)} ({currentStockData.changePercent.toFixed(2)}%)
+                    {formatCurrency(selectedStock.cmp)}
                   </div>
                 </div>
               </div>
@@ -286,7 +413,7 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                 disabled={isSubmitting}
               >
-                Use CMP as Current Price ({formatCurrency(currentStockData.price)})
+                Use CMP as Current Price ({formatCurrency(selectedStock.cmp)})
               </button>
             </div>
           )}
@@ -297,12 +424,15 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
                 Current Price (₹) *
               </label>
               <div className="relative">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                  <IndianRupee className="h-4 w-4 text-gray-500" />
+                </div>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.currentPrice}
                   onChange={(e) => handleInputChange('currentPrice', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  className={`w-full pl-10 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.currentPrice ? 'border-red-500' : 'border-gray-300'
                   }`}
                   min="0"
@@ -322,19 +452,24 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Target Price (₹) *
               </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.targetPrice}
-                onChange={(e) => handleInputChange('targetPrice', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.targetPrice ? 'border-red-500' : 'border-gray-300'
-                }`}
-                min="0"
-                placeholder="Your target price"
-                required
-                disabled={isSubmitting}
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                  <IndianRupee className="h-4 w-4 text-gray-500" />
+                </div>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.targetPrice}
+                  onChange={(e) => handleInputChange('targetPrice', e.target.value)}
+                  className={`w-full pl-10 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.targetPrice ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  min="0"
+                  placeholder="Your target price"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
               {errors.targetPrice && (
                 <div className="mt-1 flex items-center space-x-1">
                   <AlertCircle className="w-4 h-4 text-red-500" />
@@ -436,8 +571,8 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
 
           <div className="flex items-center space-x-3">
             <input
-              type="checkbox"
               id="tradeTaken"
+              type="checkbox"
               checked={formData.tradeTaken}
               onChange={(e) => handleInputChange('tradeTaken', e.target.checked)}
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"

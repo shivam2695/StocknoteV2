@@ -13,6 +13,7 @@ class StockCsvService {
   private isLoaded = false;
   private isLoading = false;
   private loadPromise: Promise<void> | null = null;
+  private lastRefreshTime = 0;
 
   private readonly CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3cKGO_dFfNhEC09M0M7VoeDSXmNOxC51VTOj4Aty6SYJ6TNZ9Faoo20bT8dgQpJ6q1Zcpx0Zx7jER/pub?output=csv';
 
@@ -84,7 +85,9 @@ class StockCsvService {
 
   // Fetch and parse CSV data
   async loadStocks(): Promise<void> {
-    if (this.isLoaded) {
+    // If data is already loaded and it's been less than 5 minutes, use cached data
+    const now = Date.now();
+    if (this.isLoaded && (now - this.lastRefreshTime < 5 * 60 * 1000)) {
       return;
     }
     
@@ -97,6 +100,7 @@ class StockCsvService {
     
     try {
       await this.loadPromise;
+      this.lastRefreshTime = now;
     } finally {
       this.isLoading = false;
     }
@@ -107,10 +111,19 @@ class StockCsvService {
       console.log('🌐 Fetching stock data from Google Sheet...');
       console.log('📍 CSV URL:', this.CSV_URL);
       
-      const response = await fetch(this.CSV_URL, {
+      // Add a cache-busting parameter to avoid browser caching
+      const cacheBuster = `?_=${Date.now()}`;
+      const url = this.CSV_URL.includes('?') 
+        ? `${this.CSV_URL}&_=${Date.now()}`
+        : `${this.CSV_URL}${cacheBuster}`;
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Accept': 'text/csv,text/plain,*/*'
+          'Accept': 'text/csv,text/plain,*/*',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
         // Add timeout
         signal: AbortSignal.timeout(15000) // 15 second timeout
