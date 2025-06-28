@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Trade } from '../types/Trade';
-import { X, TrendingUp, TrendingDown, AlertCircle, RefreshCw, DollarSign } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, AlertCircle, RefreshCw, IndianRupee } from 'lucide-react';
 import { stockCsvService, StockData } from '../services/stockCsvService';
 
 interface TradeModalProps {
@@ -497,14 +497,14 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
           {selectedStock && (
             <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-2">
               <div className="flex items-center space-x-2">
-                <DollarSign className="w-4 h-4 text-green-600" />
+                <IndianRupee className="w-4 h-4 text-green-600" />
                 <div className="text-sm font-medium text-gray-900">CMP: {formatCurrency(selectedStock.cmp)}</div>
               </div>
               <div className="flex gap-1">
                 <button
                   type="button"
                   onClick={handleUseCMPAsEntryPrice}
-                  className="bg-green-600 text-white py-1 px-2 rounded text-xs hover:bg-green-700 transition-colors"
+                  className="bg-blue-600 text-white py-1 px-2 rounded text-xs hover:bg-blue-700 transition-colors"
                   disabled={isSubmitting}
                 >
                   Use as Entry
@@ -513,7 +513,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
                   <button
                     type="button"
                     onClick={handleUseCMPAsExitPrice}
-                    className="bg-blue-600 text-white py-1 px-2 rounded text-xs hover:bg-blue-700 transition-colors"
+                    className="bg-green-600 text-white py-1 px-2 rounded text-xs hover:bg-green-700 transition-colors"
                     disabled={isSubmitting}
                   >
                     Use as Exit

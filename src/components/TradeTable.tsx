@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trade } from '../types/Trade';
-import { TrendingUp, TrendingDown, Circle, CheckCircle2, Edit, Trash2, Target, Filter, SortAsc, DollarSign } from 'lucide-react';
+import { TrendingUp, TrendingDown, Circle, CheckCircle2, Edit, Trash2, Target, Filter, SortAsc, IndianRupee, Clock, RefreshCw } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import MarkAsClosedModal from './MarkAsClosedModal';
 import { stockCsvService } from '../services/stockCsvService';
@@ -11,6 +11,7 @@ interface TradeTableProps {
   onDeleteTrade: (tradeId: string) => void;
   onUpdateTrade?: (tradeId: string, tradeData: Omit<Trade, 'id'>) => Promise<void>;
   showFilters?: boolean;
+  onRefreshCMP?: () => void;
 }
 
 export default function TradeTable({ 
@@ -18,7 +19,8 @@ export default function TradeTable({
   onEditTrade, 
   onDeleteTrade, 
   onUpdateTrade,
-  showFilters = false 
+  showFilters = false,
+  onRefreshCMP
 }: TradeTableProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; trade?: Trade }>({ isOpen: false });
   const [markAsClosed, setMarkAsClosed] = useState<{ isOpen: boolean; trade?: Trade }>({ isOpen: false });
@@ -26,6 +28,7 @@ export default function TradeTable({
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'closed'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'symbol' | 'status'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -40,6 +43,15 @@ export default function TradeTable({
       day: 'numeric',
       year: 'numeric'
     });
+  };
+
+  // Calculate aging in days
+  const calculateAging = (entryDate: string, exitDate?: string) => {
+    const startDate = new Date(entryDate);
+    const endDate = exitDate ? new Date(exitDate) : new Date();
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   };
 
   const calculateReturn = (trade: Trade) => {
@@ -62,6 +74,21 @@ export default function TradeTable({
     if (!stockCsvService.isDataLoaded()) return null;
     const stock = stockCsvService.getStockBySymbol(symbol);
     return stock ? stock.cmp : null;
+  };
+
+  // Handle CMP refresh
+  const handleRefreshCMP = async () => {
+    setIsRefreshing(true);
+    try {
+      await stockCsvService.refreshData();
+      if (onRefreshCMP) {
+        onRefreshCMP();
+      }
+    } catch (error) {
+      console.error('Failed to refresh CMP:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   // Filter and sort trades
@@ -146,6 +173,17 @@ export default function TradeTable({
               <h3 className="text-lg font-semibold text-gray-900">Trading Journal</h3>
               
               <div className="flex flex-col sm:flex-row gap-3">
+                {/* CMP Refresh Button */}
+                <button
+                  onClick={handleRefreshCMP}
+                  disabled={isRefreshing}
+                  className="flex items-center space-x-2 px-3 py-2 bg-green-100 hover:bg-green-200 rounded-lg transition-colors disabled:opacity-50 text-sm"
+                  title="Refresh CMP from Google Sheet"
+                >
+                  <RefreshCw className={`w-4 h-4 text-green-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <span className="text-green-700 font-medium">Refresh CMP</span>
+                </button>
+
                 {/* Status Filter */}
                 <div className="flex items-center space-x-2">
                   <Filter className="w-4 h-4 text-gray-500" />
@@ -197,6 +235,7 @@ export default function TradeTable({
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Entry Price</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Exit Price</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Entry Date</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Aging</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Return</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Actions</th>
               </tr>
@@ -205,6 +244,7 @@ export default function TradeTable({
               {displayTrades.map((trade) => {
                 const returnValue = calculateReturn(trade);
                 const cmp = getCMP(trade.symbol);
+                const aging = calculateAging(trade.entryDate, trade.exitDate);
                 
                 return (
                   <tr key={trade.id} className="hover:bg-gray-50 transition-colors">
@@ -234,8 +274,8 @@ export default function TradeTable({
                     <td className="py-4 px-6">
                       {cmp ? (
                         <div className="flex items-center space-x-1">
-                          <DollarSign className="w-3 h-3 text-green-500" />
-                          <span className="text-sm font-medium text-green-600">{formatCurrency(cmp)}</span>
+                          <IndianRupee className="w-3 h-3 text-green-500" />
+                          <span className="text-sm font-medium text-green-600">{cmp.toFixed(2)}</span>
                         </div>
                       ) : (
                         <span className="text-xs text-gray-400">-</span>
@@ -261,6 +301,12 @@ export default function TradeTable({
                       {trade.exitPrice ? formatCurrency(trade.exitPrice) : '-'}
                     </td>
                     <td className="py-4 px-6 text-gray-600">{formatDate(trade.entryDate)}</td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center space-x-1">
+                        <Clock className="w-3 h-3 text-gray-400" />
+                        <span className="text-sm text-gray-600">{aging} days</span>
+                      </div>
+                    </td>
                     <td className="py-4 px-6">
                       <span className={`font-semibold ${getReturnColor(returnValue)}`}>
                         {trade.status === 'CLOSED' ? formatCurrency(returnValue) : '-'}

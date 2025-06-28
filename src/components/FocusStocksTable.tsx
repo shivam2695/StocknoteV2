@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FocusStock } from '../types/FocusStock';
-import { Target, TrendingUp, CheckCircle, Circle, Edit, Trash2, Calendar, DollarSign } from 'lucide-react';
+import { Target, TrendingUp, CheckCircle, Circle, Edit, Trash2, Calendar, IndianRupee, Clock } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import FocusStockTags, { FocusStockTag } from './FocusStockTags';
 import { stockCsvService } from '../services/stockCsvService';
@@ -38,6 +38,15 @@ export default function FocusStocksTable({
       day: 'numeric',
       year: 'numeric'
     });
+  };
+
+  // Calculate aging in days
+  const calculateAging = (dateAdded: string, tradeDate?: string) => {
+    const startDate = new Date(dateAdded);
+    const endDate = tradeDate ? new Date(tradeDate) : new Date();
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   };
 
   const calculatePotentialReturn = (currentPrice: number, targetPrice: number) => {
@@ -110,6 +119,7 @@ export default function FocusStocksTable({
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Reason</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Tags</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Date Added</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Aging</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Actions</th>
               </tr>
             </thead>
@@ -117,6 +127,7 @@ export default function FocusStocksTable({
               {stocks.map((stock) => {
                 const potentialReturn = calculatePotentialReturn(stock.currentPrice, stock.targetPrice);
                 const cmp = getCMP(stock.symbol);
+                const aging = calculateAging(stock.dateAdded, stock.tradeDate);
                 
                 return (
                   <tr key={stock.id} className="hover:bg-gray-50 transition-colors">
@@ -158,8 +169,8 @@ export default function FocusStocksTable({
                     <td className="py-4 px-6">
                       {cmp ? (
                         <div className="flex items-center space-x-1">
-                          <DollarSign className="w-3 h-3 text-green-500" />
-                          <span className="text-sm font-medium text-green-600">{formatCurrency(cmp)}</span>
+                          <IndianRupee className="w-3 h-3 text-green-500" />
+                          <span className="text-sm font-medium text-green-600">{cmp.toFixed(2)}</span>
                         </div>
                       ) : (
                         <span className="text-xs text-gray-400">-</span>
@@ -188,6 +199,12 @@ export default function FocusStocksTable({
                       />
                     </td>
                     <td className="py-4 px-6 text-gray-600">{formatDate(stock.dateAdded)}</td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center space-x-1">
+                        <Clock className="w-3 h-3 text-gray-400" />
+                        <span className="text-sm text-gray-600">{aging} days</span>
+                      </div>
+                    </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-2">
                         <button
