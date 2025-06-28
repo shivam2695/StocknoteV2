@@ -9,14 +9,12 @@ import TradeTable from './components/TradeTable';
 import TradeModal from './components/TradeModal';
 import FocusStocks from './components/FocusStocks';
 import Teams from './components/Teams';
-import AuthContainer from './components/AuthContainer';
 import Header from './components/Header';
 import WelcomeModal from './components/WelcomeModal';
 import WelcomeNotification from './components/WelcomeNotification';
 import HealthCheck from './components/HealthCheck';
 import MonthFilter from './components/MonthFilter';
 import LandingPage from './pages/LandingPage';
-import Auth from './pages/Auth';
 import { useTrades } from './hooks/useTrades';
 import { useFocusStocks } from './hooks/useFocusStocks';
 import { useNotifications } from './hooks/useNotifications';
@@ -24,6 +22,46 @@ import { useAuth } from './hooks/useAuth';
 import { Trade } from './types/Trade';
 import { FocusStockTag } from './components/FocusStockTags';
 import { PlusCircle, Menu, X } from 'lucide-react';
+import AuthUI from './components/AuthUI';
+
+function App() {
+  const { isAuthenticated, user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  // If not authenticated and not on landing page, show auth UI
+  if (!isAuthenticated) {
+    return (
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <Router>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="*" element={<AuthUI />} />
+          </Routes>
+        </Router>
+      </TooltipProvider>
+    );
+  }
+
+  // If authenticated, show the app content
+  return (
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <Router>
+        <AppContent />
+      </Router>
+    </TooltipProvider>
+  );
+}
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -35,14 +73,7 @@ function AppContent() {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   
-  const { isAuthenticated, user, login, logout, signUp } = useAuth();
-  
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      window.location.href = '/login';
-    }
-  }, [isAuthenticated]);
+  const { isAuthenticated, user, logout } = useAuth();
   
   // Pass user email to hooks for user-specific data
   const { 
@@ -85,16 +116,6 @@ function AppContent() {
       setShowWelcomeNotification(true);
     }
   }, [isAuthenticated, user]);
-
-  // Show auth container if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <>
-        <Navigate to="/login" />
-        <HealthCheck />
-      </>
-    );
-  }
 
   const handleEditTrade = (trade: Trade) => {
     setEditingTrade(trade);
@@ -542,26 +563,6 @@ function AppContent() {
         userName={user?.name || ''}
       />
     </div>
-  );
-}
-
-function App() {
-  const { isAuthenticated, loading } = useAuth();
-
-  return (
-    <Router>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Auth />} />
-          <Route path="/signup" element={<Auth />} />
-          <Route path="/app/*" element={<AppContent />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </TooltipProvider>
-    </Router>
   );
 }
 
