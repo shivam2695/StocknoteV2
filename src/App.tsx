@@ -173,6 +173,31 @@ function App() {
             });
           }
         }
+      } else {
+        // Find the focus stock that was reverted
+        const focusStock = focusStocks.find(stock => stock.id === stockId);
+        if (focusStock) {
+          // Find and remove the corresponding trade from the journal
+          const matchingTrade = trades.find(trade => 
+            trade.symbol === focusStock.symbol && 
+            trade.notes?.includes(`From Focus Stock: ${focusStock.reason}`)
+          );
+          
+          if (matchingTrade) {
+            await deleteTrade(matchingTrade.id);
+            addNotification({
+              type: 'focus_taken',
+              title: 'Focus Stock Reverted',
+              message: `${focusStock.symbol} has been reverted to In Focus and removed from your trading journal`
+            });
+          } else {
+            addNotification({
+              type: 'focus_taken',
+              title: 'Focus Stock Reverted',
+              message: `${focusStock.symbol} has been reverted to In Focus`
+            });
+          }
+        }
       }
     } catch (error: any) {
       console.error('Mark focus stock taken error:', error);

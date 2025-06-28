@@ -23,6 +23,7 @@ export default function FocusStocksTable({
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; stock?: FocusStock }>({ isOpen: false });
   const [isDeleting, setIsDeleting] = useState(false);
   const [stockPrices, setStockPrices] = useState<Record<string, number>>({});
+  const [tradeTakenConfirm, setTradeTakenConfirm] = useState<{ isOpen: boolean; stock?: FocusStock; action: 'take' | 'revert' }>({ isOpen: false, action: 'take' });
 
   // Load current market prices for all symbols in the table
   useEffect(() => {
@@ -96,11 +97,33 @@ export default function FocusStocksTable({
 
   const handleTradeTakenToggle = (stock: FocusStock) => {
     if (!stock.tradeTaken) {
-      const tradeDate = new Date().toISOString().split('T')[0];
-      onMarkTradeTaken(stock.id, true, tradeDate);
+      // Show confirmation to mark as taken
+      setTradeTakenConfirm({ 
+        isOpen: true, 
+        stock, 
+        action: 'take' 
+      });
     } else {
-      onMarkTradeTaken(stock.id, false);
+      // Show confirmation to revert to In Focus
+      setTradeTakenConfirm({ 
+        isOpen: true, 
+        stock, 
+        action: 'revert' 
+      });
     }
+  };
+
+  const handleTradeTakenConfirm = () => {
+    if (!tradeTakenConfirm.stock) return;
+    
+    if (tradeTakenConfirm.action === 'take') {
+      const tradeDate = new Date().toISOString().split('T')[0];
+      onMarkTradeTaken(tradeTakenConfirm.stock.id, true, tradeDate);
+    } else {
+      onMarkTradeTaken(tradeTakenConfirm.stock.id, false);
+    }
+    
+    setTradeTakenConfirm({ isOpen: false, action: 'take' });
   };
 
   const handleDeleteClick = (stock: FocusStock) => {
@@ -172,7 +195,7 @@ export default function FocusStocksTable({
                           <span className={`text-xs font-medium ${
                             stock.tradeTaken ? 'text-green-600' : 'text-orange-600'
                           }`}>
-                            {stock.tradeTaken ? 'Taken' : 'Pending'}
+                            {stock.tradeTaken ? 'Trade Taken' : 'In Focus'}
                           </span>
                         </button>
                       </div>
@@ -283,6 +306,22 @@ export default function FocusStocksTable({
         cancelText="Cancel"
         type="danger"
         isLoading={isDeleting}
+      />
+
+      {/* Trade Taken Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={tradeTakenConfirm.isOpen}
+        onClose={() => setTradeTakenConfirm({ isOpen: false, action: 'take' })}
+        onConfirm={handleTradeTakenConfirm}
+        title={tradeTakenConfirm.action === 'take' ? "Mark as Trade Taken" : "Revert to In Focus"}
+        message={
+          tradeTakenConfirm.action === 'take'
+            ? `Mark this trade as taken and move it to the Trading Journal?`
+            : `Revert this to In Focus and remove it from the Trading Journal?`
+        }
+        confirmText={tradeTakenConfirm.action === 'take' ? "Mark as Taken" : "Revert to In Focus"}
+        cancelText="Cancel"
+        type={tradeTakenConfirm.action === 'take' ? "info" : "warning"}
       />
     </>
   );
