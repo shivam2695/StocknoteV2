@@ -1,5 +1,5 @@
 // API service for backend integration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://stocknote-backend.onrender.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://mystocknote-backend.onrender.com/api';
 
 class ApiService {
   private getAuthHeaders() {

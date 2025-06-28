@@ -1,4 +1,4 @@
-# StockNote - Trading Journal Application
+# MyStockNote - Trading Journal Application
 
 A comprehensive trading journal application built with React, TypeScript, and Tailwind CSS. Track your trades, manage focus stocks, and analyze your trading performance.
 
@@ -47,7 +47,7 @@ A comprehensive trading journal application built with React, TypeScript, and Ta
 1. Clone the repository:
 ```bash
 git clone <your-repo-url>
-cd stocknote
+cd mystocknote
 ```
 
 2. Install dependencies:
@@ -143,7 +143,7 @@ src/
 
 ## Deployment
 
-The application is deployed on Netlify at: https://stocknote.netlify.app
+The application is deployed on Netlify at: https://mystocknote.netlify.app
 
 ### Deployment Steps
 1. Build the application: `npm run build`

@@ -161,7 +161,7 @@ export default function OTPVerification({ email, onVerified, onBack, purpose }: 
             <div className="flex items-center justify-center mb-6">
               <img 
                 src="/Black White Minimalist Fierce Bull Logo.png" 
-                alt="StockNote Logo" 
+                alt="MyStockNote Logo" 
                 className="h-16 w-auto"
               />
             </div>

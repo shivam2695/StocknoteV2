@@ -1,6 +1,6 @@
-# StockNote Backend API v2.0
+# MyStockNote Backend API v2.0
 
-A comprehensive REST API for the StockNote Trading Journal application built with Node.js, Express.js, and MongoDB. This backend supports individual trading journals, team trading, focus stocks management, and book recommendations.
+A comprehensive REST API for the MyStockNote Trading Journal application built with Node.js, Express.js, and MongoDB. This backend supports individual trading journals, team trading, focus stocks management, and book recommendations.
 
 ## 🚀 Features
 
@@ -72,7 +72,7 @@ A comprehensive REST API for the StockNote Trading Journal application built wit
 1. **Clone the repository**
 ```bash
 git clone <your-repo-url>
-cd stocknote-backend
+cd mystocknote-backend
 ```
 
 2. **Install dependencies**
@@ -99,7 +99,7 @@ cp .env.example .env
 3. **Update .env file**:
 ```env
 # Database
-MONGODB_URI=mongodb://localhost:27017/stocknote
+MONGODB_URI=mongodb://localhost:27017/mystocknote
 
 # JWT Secret
 JWT_SECRET=your-super-secret-jwt-key-here-make-it-long-and-random
@@ -168,7 +168,7 @@ Check your environment variables and Gmail app password.
 ### Base URL
 ```
 Development: http://localhost:5000/api
-Production: https://stocknote-backend.onrender.com/api
+Production: https://mystocknote-backend.onrender.com/api
 ```
 
 ### Authentication Flow
@@ -381,14 +381,14 @@ Content-Type: application/json
 ### Environment Variables for Production
 ```env
 NODE_ENV=production
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/stocknote
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/mystocknote
 JWT_SECRET=your-production-jwt-secret
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=your-production-email@gmail.com
 EMAIL_PASS=your-production-app-password
 PORT=5000
-FRONTEND_URL=https://stocknote.netlify.app
+FRONTEND_URL=https://mystocknote.netlify.app
 ```
 
 ## 📊 API Response Format

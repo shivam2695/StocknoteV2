@@ -31,22 +31,22 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// CORS configuration - Updated to include stocknote.in domain
+// CORS configuration - Updated to include mystocknote.in domain
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
     ? [
-        'https://stocknote.in',
-        'https://www.stocknote.in',
-        'https://stocknote.netlify.app', 
+        'https://mystocknote.in',
+        'https://www.mystocknote.in',
+        'https://mystocknote.netlify.app', 
         'https://your-custom-domain.com',
         process.env.FRONTEND_URL
       ].filter(Boolean)
     : [
         'http://localhost:3000', 
         'http://localhost:5173',
-        'https://stocknote.in',
-        'https://www.stocknote.in',
-        'https://stocknote.netlify.app',
+        'https://mystocknote.in',
+        'https://www.mystocknote.in',
+        'https://mystocknote.netlify.app',
         process.env.FRONTEND_URL || 'http://localhost:5173'
       ].filter(Boolean),
   credentials: true,
@@ -79,7 +79,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Database connection
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/stocknote', {
+    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mystocknote', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -113,7 +113,7 @@ app.get('/health', (req, res) => {
   
   res.status(200).json({
     status: 'OK',
-    message: 'StockNote Backend is running',
+    message: 'MyStockNote Backend is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     version: '2.0.0',
@@ -232,7 +232,7 @@ process.on('SIGINT', () => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 StockNote Backend running on port ${PORT}`);
+  console.log(`🚀 MyStockNote Backend running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
   console.log(`📖 API Documentation: http://localhost:${PORT}/api`);

@@ -88,12 +88,12 @@ export default function SignUpForm({ onSignUp, onSwitchToLogin, error }: SignUpF
             <div className="flex items-center justify-center mb-6">
               <img 
                 src="/Black White Minimalist Fierce Bull Logo.png" 
-                alt="StockNote Logo" 
+                alt="MyStockNote Logo" 
                 className="h-16 w-auto"
               />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-            <p className="text-gray-600">Join StockNote and start tracking your trades</p>
+            <p className="text-gray-600">Join MyStockNote and start tracking your trades</p>
           </div>
 
           {/* Error Message */}

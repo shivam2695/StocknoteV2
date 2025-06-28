@@ -77,12 +77,12 @@ export default function LoginForm({ onLogin, onSwitchToSignUp, onForgotPassword,
             <div className="flex items-center justify-center mb-6">
               <img 
                 src="/Black White Minimalist Fierce Bull Logo.png" 
-                alt="StockNote Logo" 
+                alt="MyStockNote Logo" 
                 className="h-16 w-auto"
               />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-            <p className="text-gray-600">Sign in to your StockNote account</p>
+            <p className="text-gray-600">Sign in to your MyStockNote account</p>
           </div>
 
           {/* Error Message */}

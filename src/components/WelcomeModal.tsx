@@ -26,7 +26,7 @@ export default function WelcomeModal({ isOpen, onClose, userName }: WelcomeModal
             <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Welcome to StockNote!</h2>
+            <h2 className="text-2xl font-bold mb-2">Welcome to MyStockNote!</h2>
             <p className="text-purple-100">Hello {userName}, ready to track your trades?</p>
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function WelcomeModal({ isOpen, onClose, userName }: WelcomeModal
 
           <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg">
             <p className="text-sm text-gray-700 text-center">
-              <span className="font-semibold">Pro Tip:</span> Start by adding your first trade or focus stock to get the most out of StockNote!
+              <span className="font-semibold">Pro Tip:</span> Start by adding your first trade or focus stock to get the most out of MyStockNote!
             </p>
           </div>
 
