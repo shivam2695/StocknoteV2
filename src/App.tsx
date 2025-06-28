@@ -79,7 +79,7 @@ function AppContent() {
   if (!isAuthenticated) {
     return (
       <>
-        <AuthContainer onLogin={handleLogin} onSignUp={handleSignUp} />
+        <Navigate to="/login" />
         <HealthCheck />
       </>
     );

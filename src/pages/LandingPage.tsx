@@ -62,7 +62,7 @@ const LandingPage = () => {
                   <TrendingUp className="h-5 w-5 text-white" />
                 </div>
                 <span className="ml-2 text-xl font-bold text-slate-900">
-                  StockNote
+                  MyStockNote
                 </span>
               </div>
             </div>
@@ -71,25 +71,7 @@ const LandingPage = () => {
                 href="#"
                 className="text-slate-600 hover:text-slate-900 font-medium"
               >
-                Products
-              </a>
-              <a
-                href="#"
-                className="text-slate-600 hover:text-slate-900 font-medium"
-              >
-                Solutions
-              </a>
-              <a
-                href="#"
-                className="text-slate-600 hover:text-slate-900 font-medium"
-              >
-                Resources
-              </a>
-              <a
-                href="#"
-                className="text-slate-600 hover:text-slate-900 font-medium"
-              >
-                Pricing
+                About
               </a>
             </div>
             <div className="flex items-center space-x-4">
@@ -103,7 +85,7 @@ const LandingPage = () => {
               </Link>
               <Link to="/signup">
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">
-                  Try StockNote free →
+                  Try MyStockNote free →
                 </Button>
               </Link>
             </div>
@@ -175,7 +157,7 @@ const LandingPage = () => {
                   size="lg"
                   className="bg-blue-500 hover:bg-blue-400 text-white font-semibold px-8 py-4 text-lg"
                 >
-                  Try StockNote free →
+                  Try MyStockNote free →
                 </Button>
               </Link>
             </motion.div>
@@ -325,7 +307,7 @@ const LandingPage = () => {
             </div>
             <div className="text-center p-6 bg-gradient-to-br from-white via-orange-50 to-orange-100 rounded-xl shadow-lg border border-orange-200 hover:shadow-xl transition-shadow">
               <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-800 bg-clip-text text-transparent mb-2">
-                ₹500Cr+
+                ₹50,000+ Trades Logged
               </div>
               <div className="text-sm text-slate-600 font-medium">
                 Assets Tracked
@@ -509,15 +491,15 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Why Traders Love StockNote Section */}
+      {/* Why Traders Love MyStockNote Section */}
       <section className="py-20 bg-gradient-to-br from-white via-slate-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div {...fadeInUp} className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
-              Why Traders Love StockNote
+              Why Traders Love MyStockNote
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Join thousands of traders who trust StockNote for their trading
+              Join thousands of traders who trust MyStockNote for their trading
               journey
             </p>
           </motion.div>
@@ -711,7 +693,7 @@ const LandingPage = () => {
             Ready to elevate your investment game?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of traders and investors who use StockNote to track,
+            Join thousands of traders and investors who use MyStockNote to track,
             analyze, and optimize their portfolios.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -720,7 +702,7 @@ const LandingPage = () => {
                 size="lg"
                 className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-8 py-4 text-lg"
               >
-                Try StockNote free →
+                Try MyStockNote free →
               </Button>
             </Link>
             <Button
@@ -748,13 +730,13 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="col-span-1 md:col-span-1">
               <div className="flex items-center mb-4">
                 <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
                   <TrendingUp className="h-5 w-5 text-white" />
                 </div>
-                <span className="ml-2 text-xl font-bold">StockNote</span>
+                <span className="ml-2 text-xl font-bold">MyStockNote</span>
               </div>
               <p className="text-slate-400 max-w-md mb-6">
                 The complete investment management platform for tracking,
@@ -771,31 +753,6 @@ const LandingPage = () => {
                   <BookOpen className="h-5 w-5" />
                 </div>
               </div>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-slate-400">
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Pricing
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    API
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Integrations
-                  </a>
-                </li>
-              </ul>
             </div>
             <div>
               <h3 className="font-semibold mb-4">Support</h3>
@@ -824,7 +781,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="border-t border-slate-800 mt-8 pt-8 text-center text-slate-400">
-            <p>&copy; 2024 StockNote. All rights reserved.</p>
+            <p>&copy; 2025 MyStockNote. All rights reserved.</p>
           </div>
         </div>
       </footer>

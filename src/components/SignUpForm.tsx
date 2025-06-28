@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { UserPlus, Mail, Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, Eye, EyeOff, AlertCircle, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface SignUpFormProps {
   onSignUp: (name: string, email: string, password: string) => void;
@@ -86,11 +87,12 @@ export default function SignUpForm({ onSignUp, onSwitchToLogin, error }: SignUpF
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-6">
-              <img 
-                src="/Black White Minimalist Fierce Bull Logo.png" 
-                alt="MyStockNote Logo" 
-                className="h-16 w-auto"
-              />
+              <Link to="/" className="flex items-center">
+                <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="h-6 w-6 text-white" />
+                </div>
+                <span className="ml-2 text-xl font-bold text-slate-900">MyStockNote</span>
+              </Link>
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
             <p className="text-gray-600">Join MyStockNote and start tracking your trades</p>
