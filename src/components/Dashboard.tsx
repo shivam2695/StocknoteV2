@@ -6,6 +6,7 @@ import TradeTable from './TradeTable';
 import TradeModal from './TradeModal';
 import MonthFilter from './MonthFilter';
 import MarkAsClosedModal from './MarkAsClosedModal';
+import TrendingStocks from './TrendingStocks';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -92,6 +93,13 @@ export default function Dashboard({
 
     await onEditTrade(markAsClosed.trade.id, updatedTrade);
     setMarkAsClosed({ isOpen: false });
+  };
+
+  const handleTrendingStockSelect = (symbol: string) => {
+    // Auto-fill the trade modal with the selected stock
+    setEditingTrade(undefined);
+    setIsModalOpen(true);
+    // The TradeModal will handle the stock selection through StockSearchInput
   };
 
   const formatCurrency = (amount: number) => {
@@ -316,49 +324,11 @@ export default function Dashboard({
             </div>
           </div>
 
-          {/* Top Performers */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Top Performers</h2>
-              <PieChart className="w-6 h-6 text-gray-400" />
-            </div>
-            <div className="space-y-4">
-              {topStocks.length > 0 ? topStocks.map((stock, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                      index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : 'bg-orange-500'
-                    }`}>
-                      {index + 1}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">{getStockLogo(stock.symbol)}</span>
-                      </div>
-                      <span className="font-semibold text-gray-900">{stock.symbol}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    {stock.return >= 0 ? (
-                      <ArrowUpRight className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <ArrowDownRight className="w-4 h-4 text-red-500" />
-                    )}
-                    <span className={`font-semibold ${
-                      stock.return >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {formatPercentage(stock.return)}
-                    </span>
-                  </div>
-                </div>
-              )) : (
-                <div className="text-center py-8">
-                  <PieChart className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-500">No closed trades yet</p>
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Trending Stocks */}
+          <TrendingStocks
+            onStockSelect={handleTrendingStockSelect}
+            limit={8}
+          />
         </div>
 
         {/* Focus Stocks & Recent Trades */}

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FocusStock } from '../types/FocusStock';
-import { X, Target, AlertCircle } from 'lucide-react';
+import { X, Target, AlertCircle, RefreshCw } from 'lucide-react';
+import StockSearchInput from './StockSearchInput';
+import { StockData } from '../services/stockApi';
 
 interface FocusStockModalProps {
   isOpen: boolean;
@@ -24,6 +26,7 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStockData, setCurrentStockData] = useState<StockData | null>(null);
 
   useEffect(() => {
     if (stock) {
@@ -52,6 +55,7 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
       });
     }
     setErrors({});
+    setCurrentStockData(null);
   }, [stock, isOpen]);
 
   const validateForm = () => {
@@ -167,6 +171,32 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
     }
   };
 
+  const handleStockSelect = (symbol: string, stockData?: StockData) => {
+    setFormData(prev => ({ ...prev, symbol }));
+    setCurrentStockData(stockData || null);
+    
+    // Clear symbol error
+    if (errors.symbol) {
+      setErrors(prev => ({ ...prev, symbol: '' }));
+    }
+  };
+
+  const handlePriceUpdate = (price: number) => {
+    // Auto-fill current price with live market price if not already set
+    if (!formData.currentPrice || formData.currentPrice === '') {
+      setFormData(prev => ({ ...prev, currentPrice: price.toString() }));
+    }
+  };
+
+  const handleUseLivePrice = () => {
+    if (currentStockData) {
+      setFormData(prev => ({ ...prev, currentPrice: currentStockData.price.toString() }));
+      if (errors.currentPrice) {
+        setErrors(prev => ({ ...prev, currentPrice: '' }));
+      }
+    }
+  };
+
   const tagOptions = [
     { value: '', label: 'No Tag', color: 'bg-gray-100 text-gray-800' },
     { value: 'worked', label: 'Worked', color: 'bg-green-100 text-green-800' },
@@ -194,21 +224,21 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Stock Search Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Symbol *
+              Stock Symbol *
             </label>
-            <input
-              type="text"
+            <StockSearchInput
               value={formData.symbol}
-              onChange={(e) => handleInputChange('symbol', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.symbol ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="RELIANCE"
-              maxLength={20}
-              required
+              onChange={handleStockSelect}
+              onPriceUpdate={handlePriceUpdate}
+              placeholder="Search Indian stocks (e.g., RELIANCE, TCS)"
+              className={errors.symbol ? 'border-red-500' : ''}
               disabled={isSubmitting}
+              required
+              showPrice={true}
+              autoFetchPrice={false}
             />
             {errors.symbol && (
               <div className="mt-1 flex items-center space-x-1">
@@ -223,18 +253,31 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Current Price (₹) *
               </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.currentPrice}
-                onChange={(e) => handleInputChange('currentPrice', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.currentPrice ? 'border-red-500' : 'border-gray-300'
-                }`}
-                min="0"
-                required
-                disabled={isSubmitting}
-              />
+              <div className="relative">
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.currentPrice}
+                  onChange={(e) => handleInputChange('currentPrice', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.currentPrice ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  min="0"
+                  required
+                  disabled={isSubmitting}
+                />
+                {currentStockData && (
+                  <button
+                    type="button"
+                    onClick={handleUseLivePrice}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 hover:text-blue-500"
+                    disabled={isSubmitting}
+                    title={`Use live price: ₹${currentStockData.price}`}
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
               {errors.currentPrice && (
                 <div className="mt-1 flex items-center space-x-1">
                   <AlertCircle className="w-4 h-4 text-red-500" />
