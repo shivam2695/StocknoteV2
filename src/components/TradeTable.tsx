@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Trade } from '../types/Trade';
 import { TrendingUp, TrendingDown, Circle, CheckCircle2, Edit, Trash2, Target, Filter, SortAsc, Calendar, IndianRupee, RefreshCw } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import MarkAsClosedModal from './MarkAsClosedModal';
+import { stockCsvService } from '../services/stockCsvService';
 
 interface TradeTableProps {
   trades: Trade[];
@@ -28,6 +29,38 @@ export default function TradeTable({
   const [sortBy, setSortBy] = useState<'date' | 'symbol' | 'status'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [stockPrices, setStockPrices] = useState<Record<string, number>>({});
+
+  // Load current market prices for all symbols in the table
+  useEffect(() => {
+    const loadStockPrices = async () => {
+      if (!stockCsvService.isDataLoaded()) {
+        try {
+          await stockCsvService.loadStocks();
+        } catch (error) {
+          console.error('Failed to load stock data:', error);
+        }
+      }
+      
+      updateStockPrices();
+    };
+    
+    loadStockPrices();
+  }, [trades]);
+
+  // Update stock prices from CSV service
+  const updateStockPrices = () => {
+    const prices: Record<string, number> = {};
+    
+    trades.forEach(trade => {
+      const stockData = stockCsvService.getStockBySymbol(trade.symbol);
+      if (stockData) {
+        prices[trade.symbol] = stockData.cmp;
+      }
+    });
+    
+    setStockPrices(prices);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -144,6 +177,8 @@ export default function TradeTable({
       setIsRefreshing(true);
       try {
         await onRefreshCMP();
+        // Update stock prices after refresh
+        updateStockPrices();
       } finally {
         // Add a small delay to make the animation visible
         setTimeout(() => setIsRefreshing(false), 1000);
@@ -232,6 +267,8 @@ export default function TradeTable({
               {displayTrades.map((trade) => {
                 const returnValue = calculateReturn(trade);
                 const aging = calculateAging(trade.entryDate, trade.exitDate);
+                const currentCMP = stockPrices[trade.symbol];
+                
                 return (
                   <tr key={trade.id} className="hover:bg-gray-50 transition-colors">
                     <td className="py-3 px-3">
@@ -260,10 +297,10 @@ export default function TradeTable({
                     <td className="py-3 px-3">
                       <div className="flex items-center space-x-1">
                         <IndianRupee className="w-3 h-3 text-gray-500" />
-                        <span className="text-gray-900">
-                          {trade.status === 'CLOSED' && trade.exitPrice 
-                            ? trade.exitPrice.toLocaleString('en-IN')
-                            : trade.entryPrice.toLocaleString('en-IN')}
+                        <span className={`${currentCMP ? 'text-gray-900' : 'text-gray-500'}`}>
+                          {currentCMP 
+                            ? currentCMP.toLocaleString('en-IN')
+                            : 'N/A'}
                         </span>
                       </div>
                     </td>

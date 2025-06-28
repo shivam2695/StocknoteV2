@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FocusStock } from '../types/FocusStock';
 import { Target, TrendingUp, CheckCircle, Circle, Edit, Trash2, Calendar, IndianRupee } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import FocusStockTags, { FocusStockTag } from './FocusStockTags';
+import { stockCsvService } from '../services/stockCsvService';
 
 interface FocusStocksTableProps {
   stocks: FocusStock[];
@@ -21,6 +22,38 @@ export default function FocusStocksTable({
 }: FocusStocksTableProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; stock?: FocusStock }>({ isOpen: false });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [stockPrices, setStockPrices] = useState<Record<string, number>>({});
+
+  // Load current market prices for all symbols in the table
+  useEffect(() => {
+    const loadStockPrices = async () => {
+      if (!stockCsvService.isDataLoaded()) {
+        try {
+          await stockCsvService.loadStocks();
+        } catch (error) {
+          console.error('Failed to load stock data:', error);
+        }
+      }
+      
+      updateStockPrices();
+    };
+    
+    loadStockPrices();
+  }, [stocks]);
+
+  // Update stock prices from CSV service
+  const updateStockPrices = () => {
+    const prices: Record<string, number> = {};
+    
+    stocks.forEach(stock => {
+      const stockData = stockCsvService.getStockBySymbol(stock.symbol);
+      if (stockData) {
+        prices[stock.symbol] = stockData.cmp;
+      }
+    });
+    
+    setStockPrices(prices);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -116,6 +149,8 @@ export default function FocusStocksTable({
               {stocks.map((stock) => {
                 const potentialReturn = calculatePotentialReturn(stock.currentPrice, stock.targetPrice);
                 const aging = calculateAging(stock.dateAdded);
+                const currentCMP = stockPrices[stock.symbol];
+                
                 return (
                   <tr key={stock.id} className="hover:bg-gray-50 transition-colors">
                     <td className="py-3 px-3">
@@ -156,7 +191,11 @@ export default function FocusStocksTable({
                     <td className="py-3 px-3">
                       <div className="flex items-center space-x-1">
                         <IndianRupee className="w-3 h-3 text-gray-500" />
-                        <span className="text-gray-900">{stock.currentPrice.toLocaleString('en-IN')}</span>
+                        <span className={`${currentCMP ? 'text-gray-900' : 'text-gray-500'}`}>
+                          {currentCMP 
+                            ? currentCMP.toLocaleString('en-IN')
+                            : stock.currentPrice.toLocaleString('en-IN')}
+                        </span>
                       </div>
                     </td>
                     <td className="py-3 px-3">
