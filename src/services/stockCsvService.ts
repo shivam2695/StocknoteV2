@@ -50,6 +50,7 @@ class StockCsvService {
     { symbol: 'NESTLEIND', name: 'Nestle India Ltd', cmp: 21345.65, label: 'NESTLEIND - Nestle India Ltd' }
   ];
 
+  // Direct link to the Google Sheet CSV
   private readonly CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3cKGO_dFfNhEC09M0M7VoeDSXmNOxC51VTOj4Aty6SYJ6TNZ9Faoo20bT8dgQpJ6q1Zcpx0Zx7jER/pub?output=csv';
 
   private readonly fuseOptions = {
@@ -63,6 +64,11 @@ class StockCsvService {
     ignoreLocation: true,
     findAllMatches: false
   };
+
+  constructor() {
+    // Initialize with fallback data immediately
+    this.useFallbackData();
+  }
 
   // Parse CSV text into array of objects
   private parseCSV(csvText: string): StockData[] {
@@ -157,13 +163,14 @@ class StockCsvService {
   private async fetchAndParseCSV(): Promise<void> {
     try {
       console.log('🌐 Fetching stock data from Google Sheet...');
-      console.log('📍 CSV URL:', this.CSV_URL);
       
       // Add a cache-busting parameter to avoid browser caching
       const cacheBuster = `?_=${Date.now()}`;
       const url = this.CSV_URL.includes('?') 
         ? `${this.CSV_URL}&_=${Date.now()}`
         : `${this.CSV_URL}${cacheBuster}`;
+      
+      console.log('📍 CSV URL with cache buster:', url);
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
@@ -177,7 +184,8 @@ class StockCsvService {
             'Pragma': 'no-cache',
             'Expires': '0'
           },
-          signal: controller.signal
+          signal: controller.signal,
+          mode: 'cors' // Explicitly set CORS mode
         });
         
         clearTimeout(timeoutId);
