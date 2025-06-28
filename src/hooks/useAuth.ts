@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AuthState, User } from '../types/Auth';
 import { apiService } from '../services/api';
+import { toast } from './use-toast';
 
 export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>({
@@ -68,9 +69,15 @@ export const useAuth = () => {
 
   const signUp = async (name: string, email: string, password: string) => {
     try {
+      console.log('Attempting signup with:', email);
       const response = await apiService.signup(name, email, password);
       
       if (response.success) {
+        toast({
+          title: "Account created successfully",
+          description: "You can now log in with your credentials",
+        });
+        
         // For signup, we need email verification
         return { 
           requiresVerification: response.data?.requiresEmailVerification,
@@ -120,6 +127,11 @@ export const useAuth = () => {
         localStorage.setItem('currentUser', JSON.stringify(response.data.user));
         localStorage.setItem('authToken', response.data.token || 'dummy-token');
         
+        toast({
+          title: "Login successful",
+          description: `Welcome back, ${response.data.user.name}!`,
+        });
+        
         return response;
       }
       
@@ -154,6 +166,11 @@ export const useAuth = () => {
         localStorage.setItem('authToken', 'local-token-' + Date.now());
         
         console.log('Local login successful, auth state updated');
+        
+        toast({
+          title: "Login successful",
+          description: `Welcome back, ${userData.name}!`,
+        });
         
         return { success: true, data: { user: userData } };
       }
@@ -213,6 +230,11 @@ export const useAuth = () => {
       localStorage.removeItem('currentUser');
       localStorage.removeItem('authToken');
       console.log('Logged out, storage cleared');
+      
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
     }
   };
 

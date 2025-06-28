@@ -26,7 +26,7 @@ const Auth = () => {
   // If user is already authenticated, redirect to dashboard
   useEffect(() => {
     if (isAuthenticated) {
-      console.log("User is authenticated, redirecting to dashboard");
+      console.log("User is authenticated, redirecting to app");
       navigate("/app/dashboard", { replace: true });
     }
   }, [isAuthenticated, navigate]);
@@ -88,10 +88,6 @@ const Auth = () => {
         console.log("Attempting login with:", formData.email);
         await login(formData.email, formData.password);
         // The useEffect will handle the redirect when isAuthenticated changes
-        toast({
-          title: "Login successful",
-          description: "Welcome back to MyStockNote!",
-        });
       } else {
         console.log("Attempting signup with:", formData.email);
         await signUp(formData.fullName || "", formData.email, formData.password);
@@ -302,6 +298,7 @@ const Auth = () => {
                     }
                     className="h-11 border-gray-200"
                     required={!isLogin}
+                    disabled={isLoading}
                   />
                 </div>
               )}
@@ -319,6 +316,7 @@ const Auth = () => {
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   className="h-11 border-gray-200"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -338,12 +336,14 @@ const Auth = () => {
                     }
                     className="h-11 border-gray-200 pr-10"
                     required
+                    disabled={isLoading}
                   />
                   <Button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0 bg-transparent hover:bg-gray-100 text-gray-500"
                     variant="ghost"
+                    disabled={isLoading}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </Button>
@@ -367,6 +367,7 @@ const Auth = () => {
                       }
                       className="h-11 border-gray-200 pr-10"
                       required={!isLogin}
+                      disabled={isLoading}
                     />
                     <Button
                       type="button"
@@ -375,6 +376,7 @@ const Auth = () => {
                       }
                       className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0 bg-transparent hover:bg-gray-100 text-gray-500"
                       variant="ghost"
+                      disabled={isLoading}
                     >
                       {showConfirmPassword ? (
                         <EyeOff size={16} />
@@ -393,6 +395,7 @@ const Auth = () => {
                     type="button"
                     variant="link"
                     className="text-blue-600 hover:text-blue-700 p-0 h-auto font-medium text-sm"
+                    disabled={isLoading}
                   >
                     Forgot password?
                   </Button>
@@ -435,6 +438,7 @@ const Auth = () => {
                   type="button"
                   variant="outline"
                   className="h-11 border-gray-200 hover:bg-gray-50"
+                  disabled={isLoading}
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                     <path
@@ -460,6 +464,7 @@ const Auth = () => {
                   type="button"
                   variant="outline"
                   className="h-11 border-gray-200 hover:bg-gray-50"
+                  disabled={isLoading}
                 >
                   <svg
                     className="w-5 h-5 mr-2"

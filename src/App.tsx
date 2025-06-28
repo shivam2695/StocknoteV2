@@ -549,15 +549,17 @@ function AppContent() {
 }
 
 function App() {
+  const { isAuthenticated, loading } = useAuth();
+
   return (
     <Router>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Auth />} />
-          <Route path="/signup" element={<Auth />} />
+          <Route path="/" element={isAuthenticated ? <Navigate to="/app/dashboard" /> : <LandingPage />} />
+          <Route path="/login" element={isAuthenticated ? <Navigate to="/app/dashboard" /> : <Auth />} />
+          <Route path="/signup" element={isAuthenticated ? <Navigate to="/app/dashboard" /> : <Auth />} />
           <Route path="/app/*" element={<AppContent />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

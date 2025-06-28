@@ -77,19 +77,19 @@ const LandingPage = () => {
               </a>
             </div>
             <div className="flex items-center space-x-4">
-              <Link to="/login">
-                <Button
-                  variant="ghost"
-                  className="text-slate-600 hover:text-slate-900 font-medium"
-                >
-                  Login
-                </Button>
-              </Link>
-              <Link to="/signup">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6">
-                  Try MyStockNote free →
-                </Button>
-              </Link>
+              <Button
+                variant="ghost"
+                className="text-slate-600 hover:text-slate-900 font-medium"
+                onClick={() => navigate('/login')}
+              >
+                Login
+              </Button>
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6"
+                onClick={() => navigate('/signup')}
+              >
+                Try MyStockNote free →
+              </Button>
             </div>
           </div>
         </div>
