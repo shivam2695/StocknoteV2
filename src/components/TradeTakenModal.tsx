@@ -129,6 +129,16 @@ export default function TradeTakenModal({
                 ? "Mark this trade as taken and move it to the Trading Journal?" 
                 : "Revert this to In Focus and update the Trading Journal?"}
             </p>
+            
+            {/* Show previously used quantity when reverting */}
+            {action === 'revert' && stock.tradedQuantity && (
+              <div className="mt-2 text-sm text-blue-700">
+                <p>This will reduce the journal quantity by <strong>{stock.tradedQuantity}</strong> shares.</p>
+                {stock.tradedEntryPrice && (
+                  <p>Original entry price: <strong>₹{stock.tradedEntryPrice}</strong></p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Entry Price and Quantity Inputs (only for 'take' action) */}

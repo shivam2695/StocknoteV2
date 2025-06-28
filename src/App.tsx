@@ -141,6 +141,14 @@ function App() {
     quantity?: number
   ) => {
     try {
+      console.log('Marking focus stock as taken:', {
+        stockId,
+        tradeTaken,
+        tradeDate,
+        entryPrice,
+        quantity
+      });
+      
       const result = await markTradeTaken(stockId, tradeTaken, tradeDate, entryPrice, quantity);
       
       if (tradeTaken) {
@@ -190,43 +198,36 @@ function App() {
         // Find the focus stock that was reverted
         const focusStock = focusStocks.find(stock => stock.id === stockId);
         if (focusStock) {
-          // Find and remove the corresponding trade from the journal
+          // Find and update the corresponding trade from the journal
           const matchingTrade = trades.find(trade => 
             trade.symbol === focusStock.symbol && 
             trade.notes?.includes(`From Focus Stock: ${focusStock.reason}`)
           );
           
           if (matchingTrade) {
-            // If quantity is greater than 1, reduce it instead of deleting
-            if (matchingTrade.quantity > 1) {
+            // Get the quantity that was originally added
+            const quantityToReduce = focusStock.tradedQuantity || 1;
+            
+            // If quantity is greater than what we're removing, reduce it
+            if (matchingTrade.quantity > quantityToReduce) {
               const updatedTrade: Omit<Trade, 'id'> = {
                 ...matchingTrade,
-                quantity: matchingTrade.quantity - 1
+                quantity: matchingTrade.quantity - quantityToReduce
               };
               
-              if (updatedTrade.quantity > 0) {
-                await updateTrade(matchingTrade.id, updatedTrade);
-                addNotification({
-                  type: 'focus_taken',
-                  title: 'Focus Stock Reverted',
-                  message: `${focusStock.symbol} quantity reduced in your trading journal`
-                });
-              } else {
-                // Delete if quantity becomes 0
-                await deleteTrade(matchingTrade.id);
-                addNotification({
-                  type: 'focus_taken',
-                  title: 'Focus Stock Reverted',
-                  message: `${focusStock.symbol} has been removed from your trading journal`
-                });
-              }
+              await updateTrade(matchingTrade.id, updatedTrade);
+              addNotification({
+                type: 'focus_taken',
+                title: 'Focus Stock Reverted',
+                message: `${focusStock.symbol} quantity reduced in your trading journal`
+              });
             } else {
-              // Delete the trade if quantity is 1
+              // Delete if quantity becomes 0 or less
               await deleteTrade(matchingTrade.id);
               addNotification({
                 type: 'focus_taken',
                 title: 'Focus Stock Reverted',
-                message: `${focusStock.symbol} has been reverted to In Focus and removed from your trading journal`
+                message: `${focusStock.symbol} has been removed from your trading journal`
               });
             }
           } else {

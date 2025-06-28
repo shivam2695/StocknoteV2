@@ -11,4 +11,7 @@ export interface FocusStock {
   tradeDate?: string;
   notes?: string;
   tag?: FocusStockTag;
+  // New fields to track trade details
+  tradedQuantity?: number;
+  tradedEntryPrice?: number;
 }

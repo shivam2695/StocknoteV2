@@ -218,6 +218,11 @@ export default function FocusStocksTable({
                           </span>
                         </div>
                       )}
+                      {stock.tradeTaken && stock.tradedQuantity && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Qty: {stock.tradedQuantity}
+                        </div>
+                      )}
                     </td>
                     <td className="py-3 px-3">
                       <div className="flex items-center space-x-1">
