@@ -83,10 +83,25 @@ class StockCsvService {
       
       console.log('📊 CSV Headers found:', headers);
       
-      // Find column indices
-      const nameIndex = headers.findIndex(h => h.includes('name') || h.includes('company'));
-      const symbolIndex = headers.findIndex(h => h.includes('symbol') || h.includes('ticker'));
-      const cmpIndex = headers.findIndex(h => h.includes('cmp') || h.includes('price') || h.includes('ltp'));
+      // Find column indices - more flexible matching
+      const nameIndex = headers.findIndex(h => 
+        h.includes('name') || 
+        h.includes('company') || 
+        h.includes('stock')
+      );
+      
+      const symbolIndex = headers.findIndex(h => 
+        h.includes('symbol') || 
+        h.includes('ticker') || 
+        h.includes('code')
+      );
+      
+      const cmpIndex = headers.findIndex(h => 
+        h.includes('cmp') || 
+        h.includes('price') || 
+        h.includes('ltp') || 
+        h.includes('value')
+      );
       
       if (nameIndex === -1 || symbolIndex === -1 || cmpIndex === -1) {
         console.error('❌ Required columns not found in CSV');
@@ -99,15 +114,38 @@ class StockCsvService {
       const stocks: StockData[] = [];
       
       for (let i = 1; i < lines.length; i++) {
-        const row = lines[i].split(',');
+        // Handle quoted CSV values properly
+        let row: string[] = [];
+        let inQuotes = false;
+        let currentValue = '';
+        let currentChar = '';
+        
+        for (let j = 0; j < lines[i].length; j++) {
+          currentChar = lines[i][j];
+          
+          if (currentChar === '"' && (j === 0 || lines[i][j-1] !== '\\')) {
+            inQuotes = !inQuotes;
+          } else if (currentChar === ',' && !inQuotes) {
+            row.push(currentValue);
+            currentValue = '';
+          } else {
+            currentValue += currentChar;
+          }
+        }
+        
+        // Add the last value
+        row.push(currentValue);
+        
+        // Clean up values
+        row = row.map(val => val.trim().replace(/^"|"$/g, ''));
         
         if (row.length < Math.max(nameIndex, symbolIndex, cmpIndex) + 1) {
           continue; // Skip incomplete rows
         }
         
-        const name = row[nameIndex]?.trim().replace(/"/g, '');
-        const symbol = row[symbolIndex]?.trim().replace(/"/g, '').toUpperCase();
-        const cmpStr = row[cmpIndex]?.trim().replace(/"/g, '');
+        const name = row[nameIndex]?.trim();
+        const symbol = row[symbolIndex]?.trim().toUpperCase();
+        const cmpStr = row[cmpIndex]?.trim().replace(/[^\d.-]/g, ''); // Remove non-numeric chars except decimal and negative
         
         if (!name || !symbol || !cmpStr) {
           continue; // Skip rows with missing data
@@ -165,27 +203,26 @@ class StockCsvService {
       console.log('🌐 Fetching stock data from Google Sheet...');
       
       // Add a cache-busting parameter to avoid browser caching
-      const cacheBuster = `?_=${Date.now()}`;
-      const url = this.CSV_URL.includes('?') 
-        ? `${this.CSV_URL}&_=${Date.now()}`
-        : `${this.CSV_URL}${cacheBuster}`;
+      const cacheBuster = `&_=${Date.now()}`;
+      const url = `${this.CSV_URL}${cacheBuster}`;
       
       console.log('📍 CSV URL with cache buster:', url);
       
+      // Use a proxy service to bypass CORS
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+      console.log('🔄 Using proxy URL:', proxyUrl);
+      
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
       
       try {
-        const response = await fetch(url, {
+        const response = await fetch(proxyUrl, {
           method: 'GET',
           headers: {
             'Accept': 'text/csv,text/plain,*/*',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
+            'Cache-Control': 'no-cache'
           },
-          signal: controller.signal,
-          mode: 'cors' // Explicitly set CORS mode
+          signal: controller.signal
         });
         
         clearTimeout(timeoutId);
