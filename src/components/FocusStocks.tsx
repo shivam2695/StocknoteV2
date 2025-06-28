@@ -74,13 +74,15 @@ export default function FocusStocks({
   const handleRefreshCMP = async () => {
     setIsRefreshing(true);
     try {
+      // Use the cache-busting refresh method
       await stockCsvService.refreshData();
       // Force a re-render
       setSortBy(prev => prev);
     } catch (error) {
       console.error('Failed to refresh CMP data:', error);
+      setError(error instanceof Error ? error.message : 'Failed to refresh stock data');
     } finally {
-      setIsRefreshing(false);
+      setTimeout(() => setIsRefreshing(false), 1000);
     }
   };
 
@@ -156,7 +158,7 @@ export default function FocusStocks({
             disabled={isRefreshing}
           >
             <RefreshCw className={`w-5 h-5 text-green-600 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="text-green-700 font-medium">Refresh</span>
+            <span className="text-green-700 font-medium">Refresh CMP</span>
           </button>
           <button
             onClick={() => setIsModalOpen(true)}

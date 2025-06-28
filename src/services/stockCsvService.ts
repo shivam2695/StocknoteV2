@@ -14,6 +14,7 @@ class StockCsvService {
   private isLoading = false;
   private loadPromise: Promise<void> | null = null;
   private lastRefreshTime = 0;
+  private usingFallback = false;
 
   // Direct link to the Google Sheet CSV
   private readonly CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3cKGO_dFfNhEC09M0M7VoeDSXmNOxC51VTOj4Aty6SYJ6TNZ9Faoo20bT8dgQpJ6q1Zcpx0Zx7jER/pub?output=csv';
@@ -158,11 +159,12 @@ class StockCsvService {
     }
     
     this.isLoading = true;
-    this.loadPromise = this.fetchAndParseCSV();
+    this.loadPromise = this.fetchAndParseCSV(false);
     
     try {
       await this.loadPromise;
       this.lastRefreshTime = now;
+      this.usingFallback = false;
     } catch (error) {
       console.error('Failed to load stocks from CSV:', error);
       throw error;
@@ -171,15 +173,15 @@ class StockCsvService {
     }
   }
 
-  private async fetchAndParseCSV(): Promise<void> {
+  private async fetchAndParseCSV(forceRefresh: boolean = false): Promise<void> {
     try {
       console.log('🌐 Fetching stock data from Google Sheet...');
       
       // Add a cache-busting parameter to avoid browser caching
-      const cacheBuster = `&_=${Date.now()}`;
+      const cacheBuster = forceRefresh ? `&nocache=${Date.now()}` : '';
       const url = `${this.CSV_URL}${cacheBuster}`;
       
-      console.log('📍 CSV URL with cache buster:', url);
+      console.log('📍 CSV URL:', url);
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
@@ -189,7 +191,7 @@ class StockCsvService {
           method: 'GET',
           headers: {
             'Accept': 'text/csv,text/plain,*/*',
-            'Cache-Control': 'no-cache'
+            'Cache-Control': forceRefresh ? 'no-cache, no-store, must-revalidate' : 'default'
           },
           signal: controller.signal
         });
@@ -266,22 +268,34 @@ class StockCsvService {
     return this.isLoading;
   }
 
+  // Check if using fallback data
+  isUsingFallback(): boolean {
+    return this.usingFallback;
+  }
+
   // Get total stock count
   getStockCount(): number {
     return this.allStocks.length;
   }
 
-  // Refresh data (re-fetch CSV)
+  // Refresh data (re-fetch CSV with cache busting)
   async refreshData(): Promise<void> {
+    console.log('🔄 Refreshing stock data with cache busting...');
     this.isLoaded = false;
-    this.isLoading = false;
+    this.isLoading = true;
     this.loadPromise = null;
     
     try {
-      await this.loadStocks();
+      // Use cache busting for refresh
+      await this.fetchAndParseCSV(true);
+      this.lastRefreshTime = Date.now();
+      this.usingFallback = false;
+      console.log('✅ Stock data refreshed successfully with latest prices');
     } catch (error) {
       console.error('Failed to refresh data:', error);
       throw error;
+    } finally {
+      this.isLoading = false;
     }
   }
 }

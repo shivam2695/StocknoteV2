@@ -109,13 +109,15 @@ export default function Dashboard({
   const handleRefreshCMP = async () => {
     setIsRefreshing(true);
     try {
+      // Use the cache-busting refresh method
       await stockCsvService.refreshData();
       // Force a re-render
       setSelectedPeriod(prev => prev);
     } catch (error) {
       console.error('Failed to refresh CMP data:', error);
+      setError(error instanceof Error ? error.message : 'Failed to refresh stock data');
     } finally {
-      setIsRefreshing(false);
+      setTimeout(() => setIsRefreshing(false), 1000);
     }
   };
 
@@ -223,16 +225,6 @@ export default function Dashboard({
               onMonthChange={setSelectedMonth}
               onYearChange={setSelectedYear}
             />
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="90d">Last 90 days</option>
-              <option value="1y">Last year</option>
-            </select>
             <button
               onClick={handleRefreshCMP}
               className="flex items-center space-x-2 px-4 py-2 bg-green-100 hover:bg-green-200 rounded-lg transition-colors"

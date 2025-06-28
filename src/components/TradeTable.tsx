@@ -139,11 +139,15 @@ export default function TradeTable({
     setMarkAsClosed({ isOpen: false });
   };
 
-  const handleRefreshCMP = () => {
+  const handleRefreshCMP = async () => {
     if (onRefreshCMP) {
       setIsRefreshing(true);
-      onRefreshCMP();
-      setTimeout(() => setIsRefreshing(false), 1000);
+      try {
+        await onRefreshCMP();
+      } finally {
+        // Add a small delay to make the animation visible
+        setTimeout(() => setIsRefreshing(false), 1000);
+      }
     }
   };
 
@@ -165,7 +169,7 @@ export default function TradeTable({
                     disabled={isRefreshing}
                   >
                     <RefreshCw className={`w-4 h-4 text-green-600 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    <span className="text-green-700 text-sm font-medium">Refresh</span>
+                    <span className="text-green-700 text-sm font-medium">Refresh CMP</span>
                   </button>
                 )}
                 
