@@ -493,37 +493,32 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
             )}
           </div>
 
-          {/* Selected Stock CMP Display - More Concise */}
+          {/* Selected Stock CMP Display - More Compact */}
           {selectedStock && (
-            <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <DollarSign className="w-4 h-4 text-green-600" />
-                  <div>
-                    <div className="text-sm font-medium text-green-900">CMP: {formatCurrency(selectedStock.cmp)}</div>
-                    <div className="text-xs text-green-700">Live via Google Sheet</div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
+            <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg p-2">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="w-4 h-4 text-green-600" />
+                <div className="text-sm font-medium text-gray-900">CMP: {formatCurrency(selectedStock.cmp)}</div>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={handleUseCMPAsEntryPrice}
+                  className="bg-green-600 text-white py-1 px-2 rounded text-xs hover:bg-green-700 transition-colors"
+                  disabled={isSubmitting}
+                >
+                  Use as Entry
+                </button>
+                {formData.status === 'CLOSED' && (
                   <button
                     type="button"
-                    onClick={handleUseCMPAsEntryPrice}
-                    className="bg-green-600 text-white py-1 px-3 rounded text-xs hover:bg-green-700 transition-colors"
+                    onClick={handleUseCMPAsExitPrice}
+                    className="bg-blue-600 text-white py-1 px-2 rounded text-xs hover:bg-blue-700 transition-colors"
                     disabled={isSubmitting}
                   >
-                    Use as Entry
+                    Use as Exit
                   </button>
-                  {formData.status === 'CLOSED' && (
-                    <button
-                      type="button"
-                      onClick={handleUseCMPAsExitPrice}
-                      className="bg-blue-600 text-white py-1 px-3 rounded text-xs hover:bg-blue-700 transition-colors"
-                      disabled={isSubmitting}
-                    >
-                      Use as Exit
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           )}
