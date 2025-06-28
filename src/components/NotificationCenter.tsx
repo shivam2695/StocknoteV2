@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Notification } from '../types/Notification';
 import { 
   Bell, 
@@ -31,12 +31,12 @@ export default function NotificationCenter({
   onClearAll
 }: NotificationCenterProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.notification-center') && !target.closest('.notification-button')) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -73,7 +73,7 @@ export default function NotificationCenter({
   };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={notificationRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="notification-button p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors relative"

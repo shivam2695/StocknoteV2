@@ -3,7 +3,7 @@ import { FocusStock } from '../types/FocusStock';
 import FocusStocksTable from './FocusStocksTable';
 import FocusStockModal from './FocusStockModal';
 import { FocusStockTag } from './FocusStockTags';
-import { Target, PlusCircle, TrendingUp, Eye, AlertCircle, Filter, SortAsc, RefreshCw } from 'lucide-react';
+import { Target, PlusCircle, TrendingUp, Eye, AlertCircle, Filter, SortAsc, RefreshCw, IndianRupee } from 'lucide-react';
 import { stockCsvService } from '../services/stockCsvService';
 
 interface FocusStocksProps {
