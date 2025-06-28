@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, TrendingUp, BarChart3, Shield, Zap, Mail, Lock, User } from "lucide-react";
+import { Eye, EyeOff, TrendingUp, BarChart3, Shield, Zap, Mail, Lock, User, AlertCircle } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const location = useLocation();
@@ -25,6 +26,7 @@ const Auth = () => {
   // If user is already authenticated, redirect to dashboard
   useEffect(() => {
     if (isAuthenticated) {
+      console.log("User is authenticated, redirecting to dashboard");
       navigate("/app/dashboard", { replace: true });
     }
   }, [isAuthenticated, navigate]);
@@ -83,12 +85,23 @@ const Auth = () => {
     
     try {
       if (isLogin) {
+        console.log("Attempting login with:", formData.email);
         await login(formData.email, formData.password);
         // The useEffect will handle the redirect when isAuthenticated changes
+        toast({
+          title: "Login successful",
+          description: "Welcome back to MyStockNote!",
+        });
       } else {
+        console.log("Attempting signup with:", formData.email);
         await signUp(formData.fullName || "", formData.email, formData.password);
+        toast({
+          title: "Account created successfully",
+          description: "You can now log in with your credentials",
+        });
         // After signup, switch to login view
         setIsLogin(true);
+        navigate("/login", { replace: true });
         setFormData(prev => ({
           ...prev,
           password: "",
@@ -265,8 +278,9 @@ const Auth = () => {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+              <span className="text-red-700 text-sm">{error}</span>
             </div>
           )}
 

@@ -97,14 +97,8 @@ export const useAuth = () => {
         
         users.push({ ...user, password, verified: true });
         localStorage.setItem('stockNoteUsers', JSON.stringify(users));
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        localStorage.setItem('authToken', 'local-token-' + Date.now());
         
-        setAuthState({
-          isAuthenticated: true,
-          user: user,
-        });
-        
+        // Don't auto-login after signup
         return { success: true, data: { user } };
       }
       
@@ -114,15 +108,17 @@ export const useAuth = () => {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('Attempting login with:', email);
       const response = await apiService.login(email, password);
       
       if (response.success && response.data.user) {
+        console.log('Login successful, updating auth state');
         setAuthState({
           isAuthenticated: true,
           user: response.data.user,
         });
         localStorage.setItem('currentUser', JSON.stringify(response.data.user));
-        console.log('Login successful, user stored');
+        localStorage.setItem('authToken', response.data.token || 'dummy-token');
         
         return response;
       }
@@ -146,12 +142,18 @@ export const useAuth = () => {
         }
         
         const userData = { name: user.name, email: user.email };
+        
+        // Update auth state
         setAuthState({
           isAuthenticated: true,
           user: userData,
         });
+        
+        // Store auth data
         localStorage.setItem('currentUser', JSON.stringify(userData));
         localStorage.setItem('authToken', 'local-token-' + Date.now());
+        
+        console.log('Local login successful, auth state updated');
         
         return { success: true, data: { user: userData } };
       }
