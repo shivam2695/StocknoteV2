@@ -70,20 +70,28 @@ export default function FocusStockTags({
     );
   }
 
-  // Select mode - show dropdown for selection
+  // Select mode - show all tags as buttons
   return (
-    <select
-      value={selectedTag || ''}
-      onChange={(e) => onTagChange(e.target.value as FocusStockTag)}
-      disabled={disabled}
-      className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-    >
-      <option value="">No tag</option>
-      {tags.map((tag) => (
-        <option key={tag.id} value={tag.id}>
-          {tag.label}
-        </option>
-      ))}
-    </select>
+    <div className="flex flex-wrap gap-2">
+      {tags.map((tag) => {
+        const Icon = tag.icon;
+        const isSelected = selectedTag === tag.id;
+        
+        return (
+          <button
+            key={tag.id}
+            type="button"
+            onClick={() => onTagChange(tag.id)}
+            disabled={disabled}
+            className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+              isSelected ? tag.selectedColor : tag.color
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80 cursor-pointer'}`}
+          >
+            <Icon className="w-3 h-3" />
+            <span>{tag.label}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
