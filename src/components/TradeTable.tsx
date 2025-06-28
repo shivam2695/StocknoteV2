@@ -267,7 +267,6 @@ export default function TradeTable({
               {displayTrades.map((trade) => {
                 const returnValue = calculateReturn(trade);
                 const aging = calculateAging(trade.entryDate, trade.exitDate);
-                const currentCMP = stockPrices[trade.symbol];
                 
                 return (
                   <tr key={trade.id} className="hover:bg-gray-50 transition-colors">
@@ -295,14 +294,14 @@ export default function TradeTable({
                       </div>
                     </td>
                     <td className="py-3 px-3">
-                      <div className="flex items-center space-x-1">
-                        <IndianRupee className="w-3 h-3 text-gray-500" />
-                        <span className={`${currentCMP ? 'text-gray-900' : 'text-gray-500'}`}>
-                          {currentCMP 
-                            ? currentCMP.toLocaleString('en-IN')
-                            : 'N/A'}
-                        </span>
-                      </div>
+                      {stockPrices[trade.symbol] ? (
+                        <div className="flex items-center space-x-1">
+                          <IndianRupee className="w-3 h-3 text-gray-500" />
+                          <span className="text-gray-900">{stockPrices[trade.symbol].toLocaleString('en-IN')}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
                     </td>
                     <td className="py-3 px-3">
                       <div className="flex items-center space-x-1">
@@ -340,7 +339,7 @@ export default function TradeTable({
                           )}
                         </div>
                       ) : (
-                        <span className="text-gray-400">-</span>
+                        <span className="text-gray-400">—</span>
                       )}
                     </td>
                     <td className="py-3 px-3">
@@ -363,7 +362,7 @@ export default function TradeTable({
                           </div>
                         </div>
                       ) : (
-                        <span className="text-gray-400">-</span>
+                        <span className="text-gray-400">—</span>
                       )}
                     </td>
                     <td className="py-3 px-3">
