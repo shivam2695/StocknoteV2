@@ -224,20 +224,20 @@ export default function TradeTable({
         )}
 
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full table-fixed">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Status</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Symbol</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">CMP</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Type</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Quantity</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Entry Price</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Exit Price</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Entry Date</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Aging</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Return</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Actions</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Status</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Symbol</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">CMP</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-16">Type</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-16">Qty</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Entry</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Exit</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Date</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-16">Aging</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Return</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -248,30 +248,30 @@ export default function TradeTable({
                 
                 return (
                   <tr key={trade.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-2">
+                    <td className="py-3 px-3">
+                      <div className="flex items-center space-x-1">
                         {trade.status === 'ACTIVE' ? (
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1">
                             <Circle className="w-4 h-4 text-blue-500 fill-current" />
-                            <span className="text-sm font-medium text-blue-600">🔄 Active</span>
+                            <span className="text-xs font-medium text-blue-600">Active</span>
                           </div>
                         ) : (
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1">
                             <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                            <span className="text-sm font-medium text-blue-600">✅ Closed</span>
+                            <span className="text-xs font-medium text-blue-600">Closed</span>
                           </div>
                         )}
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                          <span className="text-white font-bold text-sm">{getStockLogo(trade.symbol)}</span>
+                    <td className="py-3 px-3">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-bold text-xs">{getStockLogo(trade.symbol)}</span>
                         </div>
-                        <span className="font-semibold text-gray-900">{trade.symbol}</span>
+                        <span className="font-semibold text-gray-900 text-sm">{trade.symbol}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-3 px-3">
                       {cmp ? (
                         <div className="flex items-center space-x-1">
                           <IndianRupee className="w-3 h-3 text-green-500" />
@@ -281,38 +281,38 @@ export default function TradeTable({
                         <span className="text-xs text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-1">
+                    <td className="py-3 px-3">
+                      <div className="flex items-center">
                         {trade.type === 'BUY' ? (
                           <TrendingUp className="w-4 h-4 text-green-500" />
                         ) : (
                           <TrendingDown className="w-4 h-4 text-red-500" />
                         )}
-                        <span className={`text-sm font-medium ${
+                        <span className={`text-xs font-medium ml-1 ${
                           trade.type === 'BUY' ? 'text-green-600' : 'text-red-600'
                         }`}>
                           {trade.type}
                         </span>
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-gray-900">{trade.quantity}</td>
-                    <td className="py-4 px-6 text-gray-900">{formatCurrency(trade.entryPrice)}</td>
-                    <td className="py-4 px-6 text-gray-900">
+                    <td className="py-3 px-3 text-gray-900 text-sm">{trade.quantity}</td>
+                    <td className="py-3 px-3 text-gray-900 text-sm">{formatCurrency(trade.entryPrice)}</td>
+                    <td className="py-3 px-3 text-gray-900 text-sm">
                       {trade.exitPrice ? formatCurrency(trade.exitPrice) : '-'}
                     </td>
-                    <td className="py-4 px-6 text-gray-600">{formatDate(trade.entryDate)}</td>
-                    <td className="py-4 px-6">
+                    <td className="py-3 px-3 text-gray-600 text-xs">{formatDate(trade.entryDate)}</td>
+                    <td className="py-3 px-3">
                       <div className="flex items-center space-x-1">
                         <Clock className="w-3 h-3 text-gray-400" />
-                        <span className="text-sm text-gray-600">{aging} days</span>
+                        <span className="text-xs text-gray-600">{aging} days</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <span className={`font-semibold ${getReturnColor(returnValue)}`}>
+                    <td className="py-3 px-3">
+                      <span className={`font-semibold text-sm ${getReturnColor(returnValue)}`}>
                         {trade.status === 'CLOSED' ? formatCurrency(returnValue) : '-'}
                       </span>
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-3 px-3">
                       <div className="flex items-center space-x-2">
                         {trade.status === 'ACTIVE' && onUpdateTrade && (
                           <button

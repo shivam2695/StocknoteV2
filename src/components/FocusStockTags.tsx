@@ -73,6 +73,11 @@ export default function FocusStockTags({
           </button>
         );
       })}
+      
+      {/* Show "No tag" message if no tag is selected and we're in showSelectedOnly mode */}
+      {showSelectedOnly && !selectedTag && (
+        <span className="text-xs text-gray-500">No tag</span>
+      )}
     </div>
   );
 }

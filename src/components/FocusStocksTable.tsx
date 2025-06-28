@@ -137,20 +137,20 @@ export default function FocusStocksTable({
           </button>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full table-fixed">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Status</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Symbol</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">CMP</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Current Price</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Target Price</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Potential Return</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Reason</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Tags</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Date Added</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Aging</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Actions</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Status</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Symbol</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">CMP</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Current</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Target</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Return</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-40">Reason</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Tag</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-28">Date</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Aging</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -161,18 +161,18 @@ export default function FocusStocksTable({
                 
                 return (
                   <tr key={stock.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-2">
+                    <td className="py-3 px-3">
+                      <div className="flex items-center space-x-1">
                         <button
                           onClick={() => handleTradeTakenToggle(stock)}
-                          className="flex items-center space-x-2 hover:bg-gray-100 p-1 rounded transition-colors"
+                          className="flex items-center space-x-1 hover:bg-gray-100 p-1 rounded transition-colors"
                         >
                           {stock.tradeTaken ? (
-                            <CheckCircle className="w-5 h-5 text-green-500" />
+                            <CheckCircle className="w-4 h-4 text-green-500" />
                           ) : (
-                            <Circle className="w-5 h-5 text-gray-400" />
+                            <Circle className="w-4 h-4 text-gray-400" />
                           )}
-                          <span className={`text-sm font-medium ${
+                          <span className={`text-xs font-medium ${
                             stock.tradeTaken ? 'text-green-600' : 'text-orange-600'
                           }`}>
                             {stock.tradeTaken ? 'Taken' : 'Pending'}
@@ -188,15 +188,15 @@ export default function FocusStocksTable({
                         </div>
                       )}
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-3 px-3">
                       <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                          <span className="text-white font-bold text-sm">{getStockLogo(stock.symbol)}</span>
+                        <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-bold text-xs">{getStockLogo(stock.symbol)}</span>
                         </div>
-                        <span className="font-semibold text-gray-900">{stock.symbol}</span>
+                        <span className="font-semibold text-gray-900 text-sm">{stock.symbol}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-3 px-3">
                       {cmp ? (
                         <div className="flex items-center space-x-1">
                           <IndianRupee className="w-3 h-3 text-green-500" />
@@ -206,41 +206,39 @@ export default function FocusStocksTable({
                         <span className="text-xs text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="py-4 px-6 text-gray-900">{formatCurrency(stock.currentPrice)}</td>
-                    <td className="py-4 px-6 text-gray-900">{formatCurrency(stock.targetPrice)}</td>
-                    <td className="py-4 px-6">
+                    <td className="py-3 px-3 text-gray-900 text-sm">{formatCurrency(stock.currentPrice)}</td>
+                    <td className="py-3 px-3 text-gray-900 text-sm">{formatCurrency(stock.targetPrice)}</td>
+                    <td className="py-3 px-3">
                       <div className="flex items-center space-x-1">
-                        <TrendingUp className={`w-4 h-4 ${getReturnColor(potentialReturn)}`} />
-                        <span className={`font-semibold ${getReturnColor(potentialReturn)}`}>
+                        <TrendingUp className={`w-3 h-3 ${getReturnColor(potentialReturn)}`} />
+                        <span className={`font-semibold text-sm ${getReturnColor(potentialReturn)}`}>
                           {potentialReturn.toFixed(1)}%
                         </span>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <span className="text-gray-700 text-sm">{stock.reason}</span>
-                      {stock.notes && (
-                        <div className="text-xs text-gray-500 mt-1">{stock.notes}</div>
-                      )}
+                    <td className="py-3 px-3">
+                      <div className="max-w-xs truncate">
+                        <span className="text-gray-700 text-sm">{stock.reason}</span>
+                        {stock.notes && (
+                          <div className="text-xs text-gray-500 mt-1 truncate">{stock.notes}</div>
+                        )}
+                      </div>
                     </td>
-                    <td className="py-4 px-6">
-                      {stock.tag ? (
-                        <FocusStockTags
-                          selectedTag={stock.tag}
-                          onTagChange={(tag) => handleTagChange(stock.id, tag)}
-                          showSelectedOnly={true}
-                        />
-                      ) : (
-                        <span className="text-xs text-gray-400">No tag</span>
-                      )}
+                    <td className="py-3 px-3">
+                      <FocusStockTags
+                        selectedTag={stock.tag}
+                        onTagChange={(tag) => handleTagChange(stock.id, tag)}
+                        showSelectedOnly={true}
+                      />
                     </td>
-                    <td className="py-4 px-6 text-gray-600">{formatDate(stock.dateAdded)}</td>
-                    <td className="py-4 px-6">
+                    <td className="py-3 px-3 text-gray-600 text-sm">{formatDate(stock.dateAdded)}</td>
+                    <td className="py-3 px-3">
                       <div className="flex items-center space-x-1">
                         <Clock className="w-3 h-3 text-gray-400" />
                         <span className="text-sm text-gray-600">{aging} days</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-3 px-3">
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => onEditStock(stock)}
