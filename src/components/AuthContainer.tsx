@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import LoginForm from './LoginForm';
 import SignUpForm from './SignUpForm';
 import OTPVerification from './OTPVerification';
 import ForgotPassword from './ForgotPassword';
+import { useAuth } from '../hooks/useAuth';
 
 interface AuthContainerProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -16,11 +18,14 @@ export default function AuthContainer({ onLogin, onSignUp }: AuthContainerProps)
     fromLogin?: boolean;
   } | null>(null);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { login, signUp } = useAuth();
 
   const handleLogin = async (email: string, password: string) => {
     try {
       setError('');
-      await onLogin(email, password);
+      await login(email, password);
+      navigate('/app/dashboard');
     } catch (error: any) {
       if (error.requiresEmailVerification) {
         setPendingVerification({ email, fromLogin: true });
@@ -34,11 +39,13 @@ export default function AuthContainer({ onLogin, onSignUp }: AuthContainerProps)
   const handleSignUpRequest = async (name: string, email: string, password: string) => {
     try {
       setError('');
-      const result = await onSignUp(name, email, password);
+      const result = await signUp(name, email, password);
       
-      if (result?.requiresEmailVerification) {
+      if (result?.requiresVerification) {
         setPendingVerification({ email, fromLogin: false });
         setCurrentView('otp');
+      } else {
+        navigate('/app/dashboard');
       }
     } catch (error: any) {
       setError(error.message || 'Sign up failed');
@@ -48,7 +55,7 @@ export default function AuthContainer({ onLogin, onSignUp }: AuthContainerProps)
   const handleOTPVerified = async () => {
     // After OTP verification, user should be automatically logged in
     setPendingVerification(null);
-    setCurrentView('login');
+    navigate('/app/dashboard');
   };
 
   const handleBackFromOTP = () => {
