@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import TradeTable from './components/TradeTable';
@@ -13,6 +16,7 @@ import WelcomeNotification from './components/WelcomeNotification';
 import HealthCheck from './components/HealthCheck';
 import MonthFilter from './components/MonthFilter';
 import LandingPage from './pages/LandingPage';
+import Auth from './pages/Auth';
 import { useTrades } from './hooks/useTrades';
 import { useFocusStocks } from './hooks/useFocusStocks';
 import { useNotifications } from './hooks/useNotifications';
@@ -547,13 +551,17 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<AuthContainer onLogin={() => {}} onSignUp={() => {}} />} />
-        <Route path="/signup" element={<AuthContainer onLogin={() => {}} onSignUp={() => {}} />} />
-        <Route path="/app/*" element={<AppContent />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Auth />} />
+          <Route path="/signup" element={<Auth />} />
+          <Route path="/app/*" element={<AppContent />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </TooltipProvider>
     </Router>
   );
 }
