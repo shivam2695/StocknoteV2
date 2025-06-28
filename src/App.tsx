@@ -11,6 +11,7 @@ import WelcomeModal from './components/WelcomeModal';
 import WelcomeNotification from './components/WelcomeNotification';
 import HealthCheck from './components/HealthCheck';
 import MonthFilter from './components/MonthFilter';
+import SuperFastStockDemo from './components/SuperFastStockDemo';
 import { useTrades } from './hooks/useTrades';
 import { useFocusStocks } from './hooks/useFocusStocks';
 import { useNotifications } from './hooks/useNotifications';
@@ -292,6 +293,8 @@ function App() {
             </div>
           </div>
         );
+      case 'superfast-demo':
+        return <SuperFastStockDemo />;
       case 'analytics':
         return (
           <div className="min-h-screen bg-gray-50">

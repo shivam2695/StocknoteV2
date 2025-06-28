@@ -9,7 +9,8 @@ import {
   PieChart,
   Bell,
   User,
-  Users
+  Users,
+  Zap
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -23,6 +24,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     { id: 'trades', label: 'Trading Journal', icon: FileText },
     { id: 'focus-stocks', label: 'Focus Stocks', icon: Target },
     { id: 'teams', label: 'Teams', icon: Users },
+    { id: 'superfast-demo', label: '⚡ SuperFast Demo', icon: Zap },
     { id: 'analytics', label: 'Analytics', icon: PieChart },
   ];
 
@@ -66,6 +68,11 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
               <span className="font-medium">{item.label}</span>
               {isActive && (
                 <div className="ml-auto w-2 h-2 bg-white rounded-full opacity-80" />
+              )}
+              {item.id === 'superfast-demo' && !isActive && (
+                <div className="ml-auto">
+                  <span className="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded-full">NEW</span>
+                </div>
               )}
             </button>
           );
