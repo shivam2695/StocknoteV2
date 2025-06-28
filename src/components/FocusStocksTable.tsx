@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { FocusStock } from '../types/FocusStock';
-import { Target, TrendingUp, CheckCircle, Circle, Edit, Trash2, Calendar } from 'lucide-react';
+import { Target, TrendingUp, CheckCircle, Circle, Edit, Trash2, Calendar, DollarSign } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import FocusStockTags, { FocusStockTag } from './FocusStockTags';
+import { stockCsvService } from '../services/stockCsvService';
 
 interface FocusStocksTableProps {
   stocks: FocusStock[];
@@ -53,6 +54,13 @@ export default function FocusStocksTable({
     return symbol.charAt(0).toUpperCase();
   };
 
+  // Get CMP for a stock symbol
+  const getCMP = (symbol: string) => {
+    if (!stockCsvService.isDataLoaded()) return null;
+    const stock = stockCsvService.getStockBySymbol(symbol);
+    return stock ? stock.cmp : null;
+  };
+
   const handleTradeTakenToggle = (stock: FocusStock) => {
     if (!stock.tradeTaken) {
       const tradeDate = new Date().toISOString().split('T')[0];
@@ -95,6 +103,7 @@ export default function FocusStocksTable({
               <tr>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Status</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Symbol</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">CMP</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Current Price</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Target Price</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Potential Return</th>
@@ -107,6 +116,8 @@ export default function FocusStocksTable({
             <tbody className="divide-y divide-gray-200">
               {stocks.map((stock) => {
                 const potentialReturn = calculatePotentialReturn(stock.currentPrice, stock.targetPrice);
+                const cmp = getCMP(stock.symbol);
+                
                 return (
                   <tr key={stock.id} className="hover:bg-gray-50 transition-colors">
                     <td className="py-4 px-6">
@@ -143,6 +154,16 @@ export default function FocusStocksTable({
                         </div>
                         <span className="font-semibold text-gray-900">{stock.symbol}</span>
                       </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      {cmp ? (
+                        <div className="flex items-center space-x-1">
+                          <DollarSign className="w-3 h-3 text-green-500" />
+                          <span className="text-sm font-medium text-green-600">{formatCurrency(cmp)}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">-</span>
+                      )}
                     </td>
                     <td className="py-4 px-6 text-gray-900">{formatCurrency(stock.currentPrice)}</td>
                     <td className="py-4 px-6 text-gray-900">{formatCurrency(stock.targetPrice)}</td>

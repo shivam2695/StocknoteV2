@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Trade } from '../types/Trade';
-import { TrendingUp, TrendingDown, Circle, CheckCircle2, Edit, Trash2, Target, Filter, SortAsc } from 'lucide-react';
+import { TrendingUp, TrendingDown, Circle, CheckCircle2, Edit, Trash2, Target, Filter, SortAsc, DollarSign } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 import MarkAsClosedModal from './MarkAsClosedModal';
+import { stockCsvService } from '../services/stockCsvService';
 
 interface TradeTableProps {
   trades: Trade[];
@@ -54,6 +55,13 @@ export default function TradeTable({
 
   const getStockLogo = (symbol: string) => {
     return symbol.charAt(0).toUpperCase();
+  };
+
+  // Get CMP for a stock symbol
+  const getCMP = (symbol: string) => {
+    if (!stockCsvService.isDataLoaded()) return null;
+    const stock = stockCsvService.getStockBySymbol(symbol);
+    return stock ? stock.cmp : null;
   };
 
   // Filter and sort trades
@@ -183,6 +191,7 @@ export default function TradeTable({
               <tr>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Status</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Symbol</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">CMP</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Type</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Quantity</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Entry Price</th>
@@ -195,6 +204,8 @@ export default function TradeTable({
             <tbody className="divide-y divide-gray-200">
               {displayTrades.map((trade) => {
                 const returnValue = calculateReturn(trade);
+                const cmp = getCMP(trade.symbol);
+                
                 return (
                   <tr key={trade.id} className="hover:bg-gray-50 transition-colors">
                     <td className="py-4 px-6">
@@ -219,6 +230,16 @@ export default function TradeTable({
                         </div>
                         <span className="font-semibold text-gray-900">{trade.symbol}</span>
                       </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      {cmp ? (
+                        <div className="flex items-center space-x-1">
+                          <DollarSign className="w-3 h-3 text-green-500" />
+                          <span className="text-sm font-medium text-green-600">{formatCurrency(cmp)}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">-</span>
+                      )}
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-1">

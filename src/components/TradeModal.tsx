@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Trade } from '../types/Trade';
 import { X, TrendingUp, TrendingDown, AlertCircle, RefreshCw, DollarSign } from 'lucide-react';
 import { stockCsvService, StockData } from '../services/stockCsvService';
@@ -33,6 +33,19 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Load stock data on component mount
   useEffect(() => {
@@ -431,7 +444,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
           )}
 
           {/* Stock Search Input */}
-          <div className="relative">
+          <div className="relative" ref={dropdownRef}>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               🔍 Stock Symbol *
             </label>
@@ -480,43 +493,37 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
             )}
           </div>
 
-          {/* Selected Stock CMP Display */}
+          {/* Selected Stock CMP Display - More Concise */}
           {selectedStock && (
-            <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-3">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <DollarSign className="w-5 h-5 text-green-600" />
+                  <DollarSign className="w-4 h-4 text-green-600" />
                   <div>
-                    <div className="text-sm font-medium text-green-900">Current Market Price (CMP)</div>
-                    <div className="text-xs text-green-700">Live CMP via Google Sheet (delayed by 2–5 mins)</div>
+                    <div className="text-sm font-medium text-green-900">CMP: {formatCurrency(selectedStock.cmp)}</div>
+                    <div className="text-xs text-green-700">Live via Google Sheet</div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-green-600">
-                    CMP: {formatCurrency(selectedStock.cmp)}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={handleUseCMPAsEntryPrice}
-                  className="bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                  disabled={isSubmitting}
-                >
-                  Use as Entry Price
-                </button>
-                {formData.status === 'CLOSED' && (
+                <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={handleUseCMPAsExitPrice}
-                    className="bg-green-600 text-white py-2 px-3 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                    onClick={handleUseCMPAsEntryPrice}
+                    className="bg-green-600 text-white py-1 px-3 rounded text-xs hover:bg-green-700 transition-colors"
                     disabled={isSubmitting}
                   >
-                    Use as Exit Price
+                    Use as Entry
                   </button>
-                )}
+                  {formData.status === 'CLOSED' && (
+                    <button
+                      type="button"
+                      onClick={handleUseCMPAsExitPrice}
+                      className="bg-blue-600 text-white py-1 px-3 rounded text-xs hover:bg-blue-700 transition-colors"
+                      disabled={isSubmitting}
+                    >
+                      Use as Exit
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}
