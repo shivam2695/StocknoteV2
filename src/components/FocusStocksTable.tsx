@@ -133,7 +133,7 @@ export default function FocusStocksTable({
             title="Refresh CMP from Google Sheet"
           >
             <RefreshCw className={`w-4 h-4 text-green-600 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="text-green-700 font-medium">Refresh CMP</span>
+            <span className="text-green-700 font-medium">Refresh</span>
           </button>
         </div>
         <div className="overflow-x-auto">
@@ -223,10 +223,15 @@ export default function FocusStocksTable({
                       )}
                     </td>
                     <td className="py-4 px-6">
-                      <FocusStockTags
-                        selectedTag={stock.tag}
-                        onTagChange={(tag) => handleTagChange(stock.id, tag)}
-                      />
+                      {stock.tag ? (
+                        <FocusStockTags
+                          selectedTag={stock.tag}
+                          onTagChange={(tag) => handleTagChange(stock.id, tag)}
+                          showSelectedOnly={true}
+                        />
+                      ) : (
+                        <span className="text-xs text-gray-400">No tag</span>
+                      )}
                     </td>
                     <td className="py-4 px-6 text-gray-600">{formatDate(stock.dateAdded)}</td>
                     <td className="py-4 px-6">

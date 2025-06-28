@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FocusStock } from '../types/FocusStock';
 import FocusStocksTable from './FocusStocksTable';
 import FocusStockModal from './FocusStockModal';
@@ -30,6 +30,25 @@ export default function FocusStocks({
   const [sortBy, setSortBy] = useState<'date' | 'symbol' | 'return'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Calculate tag statistics
+  const [tagStats, setTagStats] = useState({
+    worked: 0,
+    missed: 0,
+    failed: 0,
+    watch: 0
+  });
+
+  // Update tag statistics whenever stocks change
+  useEffect(() => {
+    const stats = {
+      worked: stocks.filter(s => s.tag === 'worked').length,
+      missed: stocks.filter(s => s.tag === 'missed').length,
+      failed: stocks.filter(s => s.tag === 'failed').length,
+      watch: stocks.filter(s => s.tag === 'watch').length
+    };
+    setTagStats(stats);
+  }, [stocks]);
 
   const handleEditStock = (stock: FocusStock) => {
     setEditingStock(stock);
@@ -129,19 +148,6 @@ export default function FocusStocks({
     return totalReturn / stockList.length;
   };
 
-  // Calculate tag statistics
-  const getTagStats = () => {
-    const tagCounts = {
-      worked: stocks.filter(s => s.tag === 'worked').length,
-      missed: stocks.filter(s => s.tag === 'missed').length,
-      failed: stocks.filter(s => s.tag === 'failed').length,
-      watch: stocks.filter(s => s.tag === 'watch').length
-    };
-    return tagCounts;
-  };
-
-  const tagStats = getTagStats();
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -157,7 +163,7 @@ export default function FocusStocks({
             disabled={isRefreshing}
           >
             <RefreshCw className={`w-5 h-5 text-green-600 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="text-green-700 font-medium">Refresh CMP</span>
+            <span className="text-green-700 font-medium">Refresh</span>
           </button>
           <button
             onClick={() => setIsModalOpen(true)}

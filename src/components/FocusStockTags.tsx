@@ -7,9 +7,15 @@ interface FocusStockTagsProps {
   selectedTag?: FocusStockTag;
   onTagChange: (tag: FocusStockTag) => void;
   disabled?: boolean;
+  showSelectedOnly?: boolean;
 }
 
-export default function FocusStockTags({ selectedTag, onTagChange, disabled = false }: FocusStockTagsProps) {
+export default function FocusStockTags({ 
+  selectedTag, 
+  onTagChange, 
+  disabled = false,
+  showSelectedOnly = false
+}: FocusStockTagsProps) {
   const tags = [
     {
       id: 'worked' as FocusStockTag,
@@ -41,9 +47,14 @@ export default function FocusStockTags({ selectedTag, onTagChange, disabled = fa
     }
   ];
 
+  // If showSelectedOnly is true and we have a selected tag, only show that tag
+  const tagsToShow = showSelectedOnly && selectedTag 
+    ? tags.filter(tag => tag.id === selectedTag)
+    : tags;
+
   return (
     <div className="flex flex-wrap gap-2">
-      {tags.map((tag) => {
+      {tagsToShow.map((tag) => {
         const Icon = tag.icon;
         const isSelected = selectedTag === tag.id;
         

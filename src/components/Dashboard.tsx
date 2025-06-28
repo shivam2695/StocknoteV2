@@ -21,7 +21,8 @@ import {
   Eye,
   CheckCircle2,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  IndianRupee
 } from 'lucide-react';
 import { stockCsvService } from '../services/stockCsvService';
 
@@ -238,7 +239,7 @@ export default function Dashboard({
               disabled={isRefreshing}
             >
               <RefreshCw className={`w-5 h-5 text-green-600 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span className="text-green-700 font-medium">Refresh CMP</span>
+              <span className="text-green-700 font-medium">Refresh</span>
             </button>
             <button
               onClick={() => setIsModalOpen(true)}
@@ -277,7 +278,7 @@ export default function Dashboard({
             title="Portfolio Value"
             value={formatCurrency(stats.totalInvestment + stats.totalReturn)}
             subtitle={`${formatPercentage(returnPercentage)} overall`}
-            icon={DollarSign}
+            icon={IndianRupee}
             gradient="bg-gradient-to-br from-blue-500 to-blue-600"
             trend={returnPercentage >= 0 ? 'up' : 'down'}
             trendValue={formatPercentage(returnPercentage)}

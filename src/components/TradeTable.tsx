@@ -181,7 +181,7 @@ export default function TradeTable({
                   title="Refresh CMP from Google Sheet"
                 >
                   <RefreshCw className={`w-4 h-4 text-green-600 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  <span className="text-green-700 font-medium">Refresh CMP</span>
+                  <span className="text-green-700 font-medium">Refresh</span>
                 </button>
 
                 {/* Status Filter */}

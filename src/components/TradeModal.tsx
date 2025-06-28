@@ -585,12 +585,15 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
                 Entry Price (₹) *
               </label>
               <div className="relative">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                  <IndianRupee className="h-4 w-4 text-gray-500" />
+                </div>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.entryPrice}
                   onChange={(e) => handleInputChange('entryPrice', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  className={`w-full pl-10 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.entryPrice ? 'border-red-500' : 'border-gray-300'
                   }`}
                   min="0"
@@ -656,19 +659,24 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Exit Price (₹) *
                   </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.exitPrice}
-                    onChange={(e) => handleInputChange('exitPrice', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.exitPrice ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    min="0"
-                    placeholder="Your actual sell price"
-                    disabled={isSubmitting}
-                    required
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                      <IndianRupee className="h-4 w-4 text-gray-500" />
+                    </div>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.exitPrice}
+                      onChange={(e) => handleInputChange('exitPrice', e.target.value)}
+                      className={`w-full pl-10 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        errors.exitPrice ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      min="0"
+                      placeholder="Your actual sell price"
+                      disabled={isSubmitting}
+                      required
+                    />
+                  </div>
                   {errors.exitPrice && (
                     <div className="mt-1 flex items-center space-x-1">
                       <AlertCircle className="w-4 h-4 text-red-500" />
