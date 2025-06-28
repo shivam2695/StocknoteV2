@@ -137,10 +137,11 @@ export default function FocusStocksTable({
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Status</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Symbol</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">CMP</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Entry Price</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Target</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-20">Return</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700">Reason</th>
-                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Tag</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-40">Reason</th>
+                <th className="text-left py-3 px-3 font-semibold text-gray-700 w-32">Tag</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-24">Aging</th>
                 <th className="text-left py-3 px-3 font-semibold text-gray-700 w-16">Actions</th>
               </tr>
@@ -205,6 +206,12 @@ export default function FocusStocksTable({
                     <td className="py-3 px-3">
                       <div className="flex items-center space-x-1">
                         <IndianRupee className="w-3 h-3 text-gray-500" />
+                        <span className="text-gray-900">{stock.currentPrice.toLocaleString('en-IN')}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-3">
+                      <div className="flex items-center space-x-1">
+                        <IndianRupee className="w-3 h-3 text-gray-500" />
                         <span className="text-gray-900">{stock.targetPrice.toLocaleString('en-IN')}</span>
                       </div>
                     </td>
@@ -217,10 +224,10 @@ export default function FocusStocksTable({
                       </div>
                     </td>
                     <td className="py-3 px-3">
-                      <div className="max-w-32 overflow-hidden">
-                        <span className="text-gray-700 text-xs truncate block">{stock.reason}</span>
+                      <div className="max-w-full overflow-hidden">
+                        <span className="text-gray-700 text-xs line-clamp-1">{stock.reason}</span>
                         {stock.notes && (
-                          <div className="text-xs text-gray-500 mt-1 truncate">{stock.notes}</div>
+                          <div className="text-xs text-gray-500 mt-1 line-clamp-1">{stock.notes}</div>
                         )}
                       </div>
                     </td>
