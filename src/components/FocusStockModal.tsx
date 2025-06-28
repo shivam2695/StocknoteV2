@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FocusStock } from '../types/FocusStock';
-import { X, Target, AlertCircle, RefreshCw } from 'lucide-react';
+import { X, Target, AlertCircle, RefreshCw, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import StockSearchInput from './StockSearchInput';
 import { StockData } from '../services/stockApi';
 
@@ -182,19 +182,26 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
   };
 
   const handlePriceUpdate = (price: number) => {
-    // Auto-fill current price with live market price if not already set
-    if (!formData.currentPrice || formData.currentPrice === '') {
-      setFormData(prev => ({ ...prev, currentPrice: price.toString() }));
-    }
+    // Don't auto-fill current price - let user decide
+    // This is just to show the current market price
   };
 
-  const handleUseLivePrice = () => {
+  const handleUseCMPAsCurrentPrice = () => {
     if (currentStockData) {
       setFormData(prev => ({ ...prev, currentPrice: currentStockData.price.toString() }));
       if (errors.currentPrice) {
         setErrors(prev => ({ ...prev, currentPrice: '' }));
       }
     }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
   };
 
   const tagOptions = [
@@ -248,6 +255,45 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
             )}
           </div>
 
+          {/* Current Market Price (CMP) Display */}
+          {currentStockData && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <DollarSign className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <div className="text-sm font-medium text-blue-900">Current Market Price (CMP)</div>
+                    <div className="text-xs text-blue-700">{currentStockData.exchange} • Live Price</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-blue-900">
+                    {formatCurrency(currentStockData.price)}
+                  </div>
+                  <div className={`text-sm flex items-center justify-end ${
+                    currentStockData.change >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {currentStockData.change >= 0 ? (
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                    ) : (
+                      <TrendingDown className="w-3 h-3 mr-1" />
+                    )}
+                    {currentStockData.change >= 0 ? '+' : ''}{currentStockData.change.toFixed(2)} ({currentStockData.changePercent.toFixed(2)}%)
+                  </div>
+                </div>
+              </div>
+              
+              <button
+                type="button"
+                onClick={handleUseCMPAsCurrentPrice}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                disabled={isSubmitting}
+              >
+                Use CMP as Current Price ({formatCurrency(currentStockData.price)})
+              </button>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -263,20 +309,10 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
                     errors.currentPrice ? 'border-red-500' : 'border-gray-300'
                   }`}
                   min="0"
+                  placeholder="Your reference price"
                   required
                   disabled={isSubmitting}
                 />
-                {currentStockData && (
-                  <button
-                    type="button"
-                    onClick={handleUseLivePrice}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 hover:text-blue-500"
-                    disabled={isSubmitting}
-                    title={`Use live price: ₹${currentStockData.price}`}
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                  </button>
-                )}
               </div>
               {errors.currentPrice && (
                 <div className="mt-1 flex items-center space-x-1">
@@ -298,6 +334,7 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
                   errors.targetPrice ? 'border-red-500' : 'border-gray-300'
                 }`}
                 min="0"
+                placeholder="Your target price"
                 required
                 disabled={isSubmitting}
               />
@@ -309,6 +346,32 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
               )}
             </div>
           </div>
+
+          {/* Potential Return Preview */}
+          {formData.currentPrice && formData.targetPrice && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <div className="text-sm font-medium text-gray-700 mb-1">Potential Return</div>
+              {(() => {
+                const currentPrice = parseFloat(formData.currentPrice);
+                const targetPrice = parseFloat(formData.targetPrice);
+                const returnAmount = targetPrice - currentPrice;
+                const returnPercentage = (returnAmount / currentPrice) * 100;
+                
+                return (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">
+                      ₹{targetPrice} - ₹{currentPrice}
+                    </span>
+                    <span className={`text-sm font-semibold ${
+                      returnAmount >= 0 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      ₹{returnAmount.toFixed(2)} ({returnPercentage >= 0 ? '+' : ''}{returnPercentage.toFixed(2)}%)
+                    </span>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

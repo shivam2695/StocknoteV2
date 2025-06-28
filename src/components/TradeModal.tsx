@@ -262,9 +262,25 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
   };
 
   const handlePriceUpdate = (price: number) => {
-    // Auto-fill entry price with current market price if not already set
-    if (!formData.entryPrice || formData.entryPrice === '') {
-      setFormData(prev => ({ ...prev, entryPrice: price.toString() }));
+    // Don't auto-fill entry price - let user decide
+    // This is just to show the current market price
+  };
+
+  const handleUseCMPAsEntryPrice = () => {
+    if (currentStockData) {
+      setFormData(prev => ({ ...prev, entryPrice: currentStockData.price.toString() }));
+      if (errors.entryPrice) {
+        setErrors(prev => ({ ...prev, entryPrice: '' }));
+      }
+    }
+  };
+
+  const handleUseCMPAsExitPrice = () => {
+    if (currentStockData) {
+      setFormData(prev => ({ ...prev, exitPrice: currentStockData.price.toString() }));
+      if (errors.exitPrice) {
+        setErrors(prev => ({ ...prev, exitPrice: '' }));
+      }
     }
   };
 
@@ -284,15 +300,6 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
         delete newErrors.exitDate;
         return newErrors;
       });
-    }
-  };
-
-  const handleUseLivePrice = () => {
-    if (currentStockData) {
-      setFormData(prev => ({ ...prev, entryPrice: currentStockData.price.toString() }));
-      if (errors.entryPrice) {
-        setErrors(prev => ({ ...prev, entryPrice: '' }));
-      }
     }
   };
 
@@ -361,7 +368,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
           {/* Current Market Price (CMP) Display */}
           {currentStockData && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <DollarSign className="w-5 h-5 text-blue-600" />
                   <div>
@@ -385,14 +392,27 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
                   </div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={handleUseLivePrice}
-                className="mt-3 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                disabled={isSubmitting}
-              >
-                Use CMP as Entry Price ({formatCurrency(currentStockData.price)})
-              </button>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleUseCMPAsEntryPrice}
+                  className="bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                  disabled={isSubmitting}
+                >
+                  Use as Entry Price
+                </button>
+                {formData.status === 'CLOSED' && (
+                  <button
+                    type="button"
+                    onClick={handleUseCMPAsExitPrice}
+                    className="bg-green-600 text-white py-2 px-3 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                    disabled={isSubmitting}
+                  >
+                    Use as Exit Price
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -467,20 +487,10 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
                     errors.entryPrice ? 'border-red-500' : 'border-gray-300'
                   }`}
                   min="0"
+                  placeholder="Your actual buy/sell price"
                   required
                   disabled={isSubmitting}
                 />
-                {currentStockData && (
-                  <button
-                    type="button"
-                    onClick={handleUseLivePrice}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 hover:text-blue-500"
-                    disabled={isSubmitting}
-                    title={`Use live price: ₹${currentStockData.price}`}
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                  </button>
-                )}
               </div>
               {errors.entryPrice && (
                 <div className="mt-1 flex items-center space-x-1">
@@ -548,7 +558,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade }: TradeModa
                       errors.exitPrice ? 'border-red-500' : 'border-gray-300'
                     }`}
                     min="0"
-                    placeholder="0.00"
+                    placeholder="Your actual sell price"
                     disabled={isSubmitting}
                     required
                   />
