@@ -172,11 +172,11 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
 
     // Current price validation
     if (!formData.currentPrice) {
-      newErrors.currentPrice = 'Current price is required';
+      newErrors.currentPrice = 'Entry price is required';
     } else {
       const price = parseFloat(formData.currentPrice);
       if (isNaN(price) || price <= 0) {
-        newErrors.currentPrice = 'Current price must be greater than 0';
+        newErrors.currentPrice = 'Entry price must be greater than 0';
       }
     }
 
@@ -277,7 +277,7 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
     setFormData(prev => ({ ...prev, tag }));
   };
 
-  const handleUseCMPAsCurrentPrice = () => {
+  const handleUseCMPAsEntryPrice = () => {
     if (selectedStock) {
       setFormData(prev => ({ ...prev, currentPrice: selectedStock.cmp.toString() }));
       if (errors.currentPrice) {
@@ -412,11 +412,11 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
               
               <button
                 type="button"
-                onClick={handleUseCMPAsCurrentPrice}
+                onClick={handleUseCMPAsEntryPrice}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                 disabled={isSubmitting}
               >
-                Use CMP as Current Price ({formatCurrency(selectedStock.cmp)})
+                Use CMP as Entry Price ({formatCurrency(selectedStock.cmp)})
               </button>
             </div>
           )}
@@ -424,7 +424,7 @@ export default function FocusStockModal({ isOpen, onClose, onSave, stock }: Focu
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Current Price (₹) *
+                Entry Price (₹) *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
