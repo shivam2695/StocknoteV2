@@ -1,7 +1,7 @@
 import React from 'react';
-import { CheckCircle, Clock, XCircle, Eye } from 'lucide-react';
+import { CheckCircle, Clock, XCircle, Eye, Activity } from 'lucide-react';
 
-export type FocusStockTag = 'worked' | 'missed' | 'failed' | 'watch';
+export type FocusStockTag = 'worked' | 'missed' | 'failed' | 'watch' | 'monitor';
 
 interface FocusStockTagsProps {
   selectedTag?: FocusStockTag;
@@ -18,18 +18,25 @@ export default function FocusStockTags({
 }: FocusStockTagsProps) {
   const tags = [
     {
+      id: 'monitor' as FocusStockTag,
+      label: 'Monitor',
+      icon: Activity,
+      color: 'bg-blue-100 text-blue-800 border-blue-200',
+      selectedColor: 'bg-blue-500 text-white border-blue-500'
+    },
+    {
+      id: 'watch' as FocusStockTag,
+      label: 'Setup Waiting',
+      icon: Eye,
+      color: 'bg-amber-100 text-amber-800 border-amber-200',
+      selectedColor: 'bg-amber-500 text-white border-amber-500'
+    },
+    {
       id: 'worked' as FocusStockTag,
-      label: 'Worked',
+      label: 'Entered',
       icon: CheckCircle,
       color: 'bg-green-100 text-green-800 border-green-200',
       selectedColor: 'bg-green-500 text-white border-green-500'
-    },
-    {
-      id: 'missed' as FocusStockTag,
-      label: 'Missed',
-      icon: Clock,
-      color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      selectedColor: 'bg-yellow-500 text-white border-yellow-500'
     },
     {
       id: 'failed' as FocusStockTag,
@@ -39,11 +46,11 @@ export default function FocusStockTags({
       selectedColor: 'bg-red-500 text-white border-red-500'
     },
     {
-      id: 'watch' as FocusStockTag,
-      label: 'Watch',
-      icon: Eye,
-      color: 'bg-blue-100 text-blue-800 border-blue-200',
-      selectedColor: 'bg-blue-500 text-white border-blue-500'
+      id: 'missed' as FocusStockTag,
+      label: 'Missed Entry',
+      icon: Clock,
+      color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      selectedColor: 'bg-yellow-500 text-white border-yellow-500'
     }
   ];
 
@@ -70,20 +77,39 @@ export default function FocusStockTags({
     );
   }
 
-  // Select mode - show dropdown for selection
+  // Select mode - show pill buttons for selection
   return (
-    <select
-      value={selectedTag || ''}
-      onChange={(e) => onTagChange(e.target.value as FocusStockTag)}
-      disabled={disabled}
-      className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-    >
-      <option value="">No tag</option>
-      {tags.map((tag) => (
-        <option key={tag.id} value={tag.id}>
-          {tag.label}
-        </option>
-      ))}
-    </select>
+    <div className="flex flex-wrap gap-2">
+      {tags.map((tag) => {
+        const Icon = tag.icon;
+        const isSelected = selectedTag === tag.id;
+        
+        return (
+          <button
+            key={tag.id}
+            type="button"
+            onClick={() => onTagChange(tag.id)}
+            disabled={disabled}
+            className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+              isSelected ? tag.selectedColor : tag.color
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80 cursor-pointer'}`}
+          >
+            <Icon className="w-3 h-3" />
+            <span>{tag.label}</span>
+          </button>
+        );
+      })}
+      
+      {selectedTag && (
+        <button
+          type="button"
+          onClick={() => onTagChange('' as FocusStockTag)}
+          disabled={disabled}
+          className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1"
+        >
+          Clear
+        </button>
+      )}
+    </div>
   );
 }
